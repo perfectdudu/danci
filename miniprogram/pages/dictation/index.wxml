@@ -1,0 +1,39 @@
+<!--听写进行中页面-->
+<view class="container">
+  <!-- 使用Vant导航栏组件 -->
+  <van-nav-bar
+    title="听写中({{currentIndex + 1}}/{{totalWords}})"
+    left-text="返回"
+    left-arrow
+    fixed
+    placeholder
+    safe-area-inset-top
+    bind:click-left="confirmExit"
+    custom-class="custom-nav"
+    title-class="nav-title"
+  />
+
+  <view class="content">
+    <view class="word-display">
+      <text>{{currentWord.word || '书, 书本'}}</text>
+    </view>
+    
+    <view class="player-controls">
+      <view class="control-button prev-button" bindtap="prevWord">
+        <image src="/images/icons/{{currentIndex > 0 ? '上一个选中.png' : '上一个.png'}}" mode="aspectFit" class="control-icon"></image>
+      </view>
+      <view class="control-button play-button {{isPlaying ? 'active' : ''}}" bindtap="playWord">
+        <image src="/images/icons/{{isPlaying ? '暂停选中.png' : '播放选中.png'}}" mode="aspectFit" class="control-icon"></image>
+      </view>
+      <view class="control-button next-button" bindtap="nextWord">
+        <image src="/images/icons/{{currentIndex < totalWords - 1 ? '下一个选中.png' : '下一个.png'}}" mode="aspectFit" class="control-icon"></image>
+      </view>
+    </view>
+
+    <view class="stop-section">
+      <button class="stop-button" bindtap="endDictation">
+        <text class="iconfont icon-stop"></text> 结束听写
+      </button>
+    </view>
+  </view>
+</view> 

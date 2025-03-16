@@ -1,0 +1,55 @@
+<!-- 听写结果页面 -->
+<view class="container">
+  <!-- 使用Vant导航栏组件 -->
+  <van-nav-bar
+    title="听写结果"
+    left-text="返回"
+    left-arrow
+    fixed
+    placeholder
+    safe-area-inset-top
+    bind:click-left="onBack"
+    custom-class="custom-nav"
+    title-class="nav-title"
+  />
+
+  <view class="result-card">
+    <!-- 听写标题 -->
+    
+    <!-- 统计数据 -->
+    <view class="stats-container">
+      <view class="stat-item correct">
+        <view class="stat-value">{{correctCount}}</view>
+        <view class="stat-label">正确</view>
+      </view>
+      <view class="stat-item wrong">
+        <view class="stat-value">{{wrongCount}}</view>
+        <view class="stat-label">错误</view>
+      </view>
+      <view class="stat-item accuracy">
+        <view class="stat-value">{{correctRate}}%</view>
+        <view class="stat-label">正确率</view>
+      </view>
+    </view>
+    
+    <!-- 用时 -->
+    <!-- <view class="time-used">用时: {{timeUsed}}分钟</view> -->
+  </view>
+  
+  <!-- 单词详情 -->
+  <view class="details-section">
+    <view class="section-title">单词详情</view>
+    
+    <view class="word-list">
+      <block wx:for="{{wordList}}" wx:key="word">
+        <view class="word-item {{item.isCorrect ? 'correct' : 'wrong'}}">
+          <view class="word-text">{{item.word}}</view>
+          <view wx:if="{{!item.isCorrect}}" class="word-answer">
+            您的答案: {{item.userAnswer}}
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+ 
+</view> 

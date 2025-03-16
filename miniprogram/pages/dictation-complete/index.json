@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "听写完成",
+  "usingComponents": {
+    "custom-header": "/components/header/index",
+    "van-nav-bar": "../../miniprogram_npm/@vant/weapp/nav-bar/index"
+  },
+  "navigationStyle": "custom"
+} 

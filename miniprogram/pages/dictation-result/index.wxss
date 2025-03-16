@@ -1,0 +1,224 @@
+/* 听写结果页面样式 */
+.container {
+  padding: 0;
+  height: 100vh; /* 固定高度 */
+  display: flex;
+  flex-direction: column;
+  background-color: #e8f5e9;
+  position: relative;
+  overflow: hidden; /* 防止整体滚动 */
+  box-sizing: border-box;
+}
+
+/* 导航栏样式 */
+.custom-nav {
+  background-color: #4CAF50 !important;
+  box-shadow: none !important;
+  border-bottom: none !important;
+}
+
+.nav-title {
+  color: #ffffff !important;
+  font-weight: bold !important;
+}
+
+/* Vant导航栏返回按钮颜色 */
+.van-nav-bar__text {
+  color: #ffffff !important;
+}
+
+.van-icon-arrow-left {
+  color: #ffffff !important;
+}
+
+/* 结果卡片 */
+.result-card {
+  margin: 30rpx;
+  padding: 30rpx;
+  background-color: #e8f5e9;
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: calc(100% - 60rpx);
+  flex-shrink: 0; /* 防止压缩 */
+}
+
+.dictation-title {
+  font-size: 38rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+  text-align: center;
+}
+
+/* 统计数据样式 - 优化版 */
+.stats-container {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  margin: 20rpx 0 30rpx;
+  position: relative;
+}
+
+/* 统计背景装饰 */
+.stats-container::before {
+  content: "";
+  position: absolute;
+  top: -10rpx;
+  left: -10rpx;
+  right: -10rpx;
+  bottom: -10rpx;
+  border-radius: 30rpx;
+  background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.3) 100%);
+  z-index: 0;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15rpx 20rpx;
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s;
+}
+
+.stat-value {
+  font-size: 52rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+/* 数值下方的装饰横线 */
+.stat-value::after {
+  content: "";
+  position: absolute;
+  bottom: -5rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40rpx;
+  height: 6rpx;
+  border-radius: 3rpx;
+  background-color: currentColor;
+  opacity: 0.6;
+}
+
+.stat-label {
+  font-size: 28rpx;
+  color: #666;
+  font-weight: 500;
+  margin-top: 10rpx;
+}
+
+.correct .stat-value {
+  color: #4CAF50;
+}
+
+.correct .stat-value::after {
+  background-color: #4CAF50;
+}
+
+.wrong .stat-value {
+  color: #F44336;
+}
+
+.wrong .stat-value::after {
+  background-color: #F44336;
+}
+
+.accuracy .stat-value {
+  color: #2196F3;
+}
+
+.accuracy .stat-value::after {
+  background-color: #2196F3;
+}
+
+.time-used {
+  font-size: 28rpx;
+  color: #666;
+  margin-top: 15rpx;
+  background-color: rgba(255, 255, 255, 0.6);
+  padding: 8rpx 20rpx;
+  border-radius: 30rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+/* 单词详情部分 */
+.details-section {
+  margin: 0; /* 移除左右边距 */
+  margin-right: -2rpx; /* 确保完全贴合右侧 */
+  background-color: #fff;
+  border-radius: 20rpx 0 0 0; /* 只保留左上角圆角 */
+  padding: 30rpx 0 30rpx 30rpx; /* 移除右侧内边距 */
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  flex: 1; /* 填充剩余空间 */
+  width: 100%; /* 宽度铺满 */
+  overflow: hidden; /* 仅允许内部滚动 */
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+  flex-shrink: 0; /* 防止压缩 */
+  padding-right: 30rpx; /* 为标题单独添加右侧内边距 */
+}
+
+.word-list {
+  flex: 1; /* 占据details-section剩余空间 */
+  overflow-y: scroll; /* 显式设置为scroll以确保显示滚动条 */
+  -webkit-overflow-scrolling: touch; /* 增强iOS滚动体验 */
+  padding-right: 30rpx; /* 为单词列表内容单独添加右侧内边距 */
+  margin-right: 0; /* 确保滚动条贴近边缘 */
+  box-sizing: border-box;
+}
+
+.word-item {
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  border-radius: 16rpx;
+}
+
+.word-item.correct {
+  background-color: #f1f8e9;
+}
+
+.word-item.wrong {
+  background-color: #ffebee;
+}
+
+.word-text {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.word-phonetic {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 10rpx;
+}
+
+.word-answer {
+  font-size: 28rpx;
+  color: #F44336;
+}
+
+/* 操作按钮 */
+.action-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin: 20rpx 30rpx 40rpx; /* 增加底部间距 */
+  flex-shrink: 0; /* 防止压缩 */
+}

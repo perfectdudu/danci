@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>单词听写小程序原型</title>
+    <link rel="stylesheet" href="https://at.alicdn.com/t/font_3114978_qe0b39no76.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .prototype-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+        }
+        
+        .screen {
+            width: 320px;
+            height: 568px;
+            background-color: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+            border: 1px solid #eee;
+        }
+        
+        .screen-title {
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .header {
+            height: 44px;
+            background-color: #4CAF50;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .tab-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background-color: white;
+            display: flex;
+            border-top: 1px solid #eee;
+        }
+        
+        .tab-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 12px;
+        }
+        
+        .tab-item.active {
+            color: #4CAF50;
+        }
+        
+        .tab-icon {
+            font-size: 24px;
+            margin-bottom: 2px;
+        }
+        
+        .content {
+            padding: 15px;
+            height: calc(100% - 94px);
+            overflow-y: auto;
+        }
+        
+        .input-area {
+            background-color: #f9f9f9;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 120px;
+            border: none;
+            background-color: transparent;
+            resize: none;
+            font-size: 16px;
+            outline: none;
+            line-height: 1.5;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        
+        .action-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+            background-color: #e8f5e9;
+            color: #4CAF50;
+            border-radius: 20px;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .action-button i {
+            margin-right: 5px;
+        }
+        
+        .start-button {
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 24px;
+            padding: 12px 0;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+            width: 100%;
+        }
+        
+        .word-list {
+            margin-top: 20px;
+        }
+        
+        .word-item {
+            background-color: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid #eee;
+        }
+        
+        .word-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .word-count {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+        
+        .word-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .word-action {
+            font-size: 13px;
+            color: #4CAF50;
+        }
+        
+        .record-list {
+            margin-top: 10px;
+        }
+        
+        .record-item {
+            background-color: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid #eee;
+        }
+        
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .record-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .record-date {
+            font-size: 13px;
+            color: #888;
+        }
+        
+        .record-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        
+        .stat-value.correct {
+            color: #4CAF50;
+        }
+        
+        .stat-value.wrong {
+            color: #F44336;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .record-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+        
+        .record-action {
+            color: #4CAF50;
+            font-size: 13px;
+        }
+        
+        .profile-section {
+            padding: 20px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #e8f5e9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: #4CAF50;
+            font-size: 24px;
+        }
+        
+        .user-info {
+            flex: 1;
+        }
+        
+        .username {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .user-stats {
+            font-size: 13px;
+            color: #888;
+        }
+        
+        .menu-list {
+            margin-top: 20px;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+            color: #4CAF50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .menu-title {
+            flex: 1;
+            font-size: 16px;
+        }
+        
+        .menu-arrow {
+            color: #ccc;
+        }
+        
+        .word-result-list {
+            margin-bottom: 20px;
+        }
+        
+        .word-result {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .word-result.correct {
+            background-color: rgba(76, 175, 80, 0.05);
+        }
+        
+        .word-result.wrong {
+            background-color: rgba(244, 67, 54, 0.05);
+        }
+        
+        .word-text {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        
+        .word-phonetic {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 3px;
+        }
+        
+        .word-wrong {
+            font-size: 13px;
+            color: #F44336;
+        }
+        
+        .word-result-status {
+            font-size: 20px;
+        }
+        
+        .setting-group {
+            margin-bottom: 25px;
+        }
+        
+        .setting-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .setting-label {
+            font-size: 15px;
+        }
+        
+        .setting-value {
+            display: flex;
+            align-items: center;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 20px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #4CAF50;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+        
+        .select {
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background-color: white;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center; margin-bottom: 30px; color: #4CAF50;">单词听写小程序原型设计</h1>
+    
+    <div class="prototype-container">
+        <!-- 首页 -->
+        <div>
+            <h2 class="screen-title">首页</h2>
+            <div class="screen">
+                <div class="header">单词听写助手</div>
+                <div class="content">
+                    <div class="input-area">
+                        <textarea placeholder="请输入或粘贴需要听写的单词，每行一个..."></textarea>
+                        <div class="action-buttons">
+                            <button class="action-button">
+                                <i class="iconfont icon-save"></i> 保存
+                            </button>
+                            <button class="action-button">
+                                <i class="iconfont icon-camera"></i> 拍照识别
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="start-button">
+                        开始听写
+                    </div>
+                    
+                    <div class="word-list">
+                        <div class="word-item">
+                            <div class="word-title">英语四级词汇</div>
+                            <div class="word-count">共 50 个单词</div>
+                            <div class="word-actions">
+                                <span class="word-action">编辑</span>
+                                <span class="word-action">听写</span>
+                                <span class="word-action">删除</span>
+                            </div>
+                        </div>
+                        
+                        <div class="word-item">
+                            <div class="word-title">英语六级核心词汇</div>
+                            <div class="word-count">共 30 个单词</div>
+                            <div class="word-actions">
+                                <span class="word-action">编辑</span>
+                                <span class="word-action">听写</span>
+                                <span class="word-action">删除</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-bar">
+                    <div class="tab-item active">
+                        <i class="tab-icon iconfont icon-home"></i>
+                        <span>首页</span>
+                    </div>
+                    <div class="tab-item">
+                        <i class="tab-icon iconfont icon-list"></i>
+                        <span>听写记录</span>
+                    </div>
+                    <div class="tab-item">
+                        <i class="tab-icon iconfont icon-user"></i>
+                        <span>我的</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 听写记录页面 -->
+        <div>
+            <h2 class="screen-title">听写记录</h2>
+            <div class="screen">
+                <div class="header">听写记录</div>
+                <div class="content">
+                    <div class="record-list">
+                        <div class="record-item">
+                            <div class="record-header">
+                                <div class="record-title">英语四级词汇</div>
+                                <div class="record-date">2023-06-15</div>
+                            </div>
+                            <div class="record-stats">
+                                <div class="stat-item">
+                                    <div class="stat-value correct">42</div>
+                                    <div class="stat-label">正确</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value wrong">8</div>
+                                    <div class="stat-label">错误</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">50</div>
+                                    <div class="stat-label">总数</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">84%</div>
+                                    <div class="stat-label">正确率</div>
+                                </div>
+                            </div>
+                            <div class="record-actions">
+                                <span class="record-action">查看详情</span>
+                                <span class="record-action">重新听写</span>
+                            </div>
+                        </div>
+                        
+                        <div class="record-item">
+                            <div class="record-header">
+                                <div class="record-title">英语六级核心词汇</div>
+                                <div class="record-date">2023-06-10</div>
+                            </div>
+                            <div class="record-stats">
+                                <div class="stat-item">
+                                    <div class="stat-value correct">25</div>
+                                    <div class="stat-label">正确</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value wrong">5</div>
+                                    <div class="stat-label">错误</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">30</div>
+                                    <div class="stat-label">总数</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">83%</div>
+                                    <div class="stat-label">正确率</div>
+                                </div>
+                            </div>
+                            <div class="record-actions">
+                                <span class="record-action">查看详情</span>
+                                <span class="record-action">重新听写</span>
+                            </div>
+                        </div>
+                        
+                        <div class="record-item">
+                            <div class="record-header">
+                                <div class="record-title">托福常用词汇</div>
+                                <div class="record-date">2023-06-05</div>
+                            </div>
+                            <div class="record-stats">
+                                <div class="stat-item">
+                                    <div class="stat-value correct">38</div>
+                                    <div class="stat-label">正确</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value wrong">12</div>
+                                    <div class="stat-label">错误</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">50</div>
+                                    <div class="stat-label">总数</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">76%</div>
+                                    <div class="stat-label">正确率</div>
+                                </div>
+                            </div>
+                            <div class="record-actions">
+                                <span class="record-action">查看详情</span>
+                                <span class="record-action">重新听写</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-bar">
+                    <div class="tab-item">
+                        <i class="tab-icon iconfont icon-home"></i>
+                        <span>首页</span>
+                    </div>
+                    <div class="tab-item active">
+                        <i class="tab-icon iconfont icon-list"></i>
+                        <span>听写记录</span>
+                    </div>
+                    <div class="tab-item">
+                        <i class="tab-icon iconfont icon-user"></i>
+                        <span>我的</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 我的页面 -->
+        <div>
+            <h2 class="screen-title">我的</h2>
+            <div class="screen">
+                <div class="header">我的</div>
+                <div class="content">
+                    <div class="profile-section">
+                        <div class="avatar">
+                            <i class="iconfont icon-user"></i>
+                        </div>
+                        <div class="user-info">
+                            <div class="username">用户名</div>
+                            <div class="user-stats">已完成听写 15 次 | 累计单词 450 个</div>
+                        </div>
+                    </div>
+                    
+                    <div class="menu-list">
+                        <div class="menu-item">
+                            <div class="menu-icon">
+                                <i class="iconfont icon-stats"></i>
+                            </div>
+                            <div class="menu-title">听写结果</div>
+                            <div class="menu-arrow">></div>
+                        </div>
+                        
+                        <div class="menu-item">
+                            <div class="menu-icon">
+                                <i class="iconfont icon-settings"></i>
+                            </div>
+                            <div class="menu-title">听写设置</div>
+                            <div class="menu-arrow">></div>
+                        </div>
+                        
+                        <div class="menu-item">
+                            <div class="menu-icon">
+                                <i class="iconfont icon-book"></i>
+                            </div>
+                            <div class="menu-title">错题本单词</div>
+                            <div class="menu-arrow">></div>
+                        </div>
+                        
+                        <div class="menu-item">
+                            <div class="menu-icon">
+                                <i class="iconfont icon-share"></i>
+                            </div>
+                            <div class="menu-title">分享给好友</div>
+                            <div class="menu-arrow">></div>
+                        </div>
+                        
+                        <div class="menu-item">
+                            <div class="menu-icon">
+                                <i class="iconfont icon-feedback"></i>
+                            </div>
+                            <div class="menu-title">意见反馈</div>
+                            <div class="menu-arrow">></div>
+                        </div>
+                        
+                        <div class="menu-item">
+                            <div class="menu-icon">
+                                <i class="iconfont icon-about"></i>
+                            </div>
+                            <div class="menu-title">关于我们</div>
+                            <div class="menu-arrow">></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-bar">
+                    <div class="tab-item">
+                        <i class="tab-icon iconfont icon-home"></i>
+                        <span>首页</span>
+                    </div>
+                    <div class="tab-item">
+                        <i class="tab-icon iconfont icon-list"></i>
+                        <span>听写记录</span>
+                    </div>
+                    <div class="tab-item active">
+                        <i class="tab-icon iconfont icon-user"></i>
+                        <span>我的</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 听写进行中页面 -->
+        <div>
+            <h2 class="screen-title">听写进行中</h2>
+            <div class="screen">
+                <div class="header">
+                    <div style="position: absolute; left: 15px;">
+                        <i class="iconfont icon-back"></i>
+                    </div>
+                    听写进行中
+                    <div style="position: absolute; right: 15px;">
+                        10/30
+                    </div>
+                </div>
+                <div class="content">
+                    <div style="text-align: center; margin: 30px 0;">
+                        <div style="font-size: 14px; color: #888; margin-bottom: 10px;">点击喇叭图标播放单词</div>
+                        <div style="font-size: 36px; color: #4CAF50; margin-bottom: 20px;">
+                            <i class="iconfont icon-sound"></i>
+                        </div>
+                        <div style="font-size: 14px; color: #888;">第 10 个单词</div>
+                    </div>
+                    
+                    <div class="input-area" style="margin-top: 30px;">
+                        <textarea placeholder="请输入听到的单词..." style="height: 60px;"></textarea>
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; margin-top: 20px;">
+                        <button class="action-button" style="flex: 1;">
+                            <i class="iconfont icon-replay"></i> 重播
+                        </button>
+                        <button class="action-button" style="flex: 1;">
+                            <i class="iconfont icon-slow"></i> 慢速播放
+                        </button>
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; margin-top: 15px;">
+                        <button class="action-button" style="flex: 1;">
+                            <i class="iconfont icon-skip"></i> 跳过
+                        </button>
+                        <button class="action-button" style="flex: 1; background-color: #4CAF50; color: white;">
+                            <i class="iconfont icon-next"></i> 下一个
+                        </button>
+                    </div>
+                    
+                    <div style="margin-top: 30px; text-align: center;">
+                        <button class="action-button" style="padding: 10px 20px;">
+                            <i class="iconfont icon-stop"></i> 结束听写
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 听写结果页面 -->
+        <div>
+            <h2 class="screen-title">听写结果</h2>
+            <div class="screen">
+                <div class="header">
+                    <div style="position: absolute; left: 15px;">
+                        <i class="iconfont icon-back"></i>
+                    </div>
+                    听写结果
+                </div>
+                <div class="content">
+                    <div style="background-color: #e8f5e9; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px;">
+                        <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px;">英语四级词汇</div>
+                        <div style="display: flex; justify-content: space-around; margin-bottom: 15px;">
+                            <div>
+                                <div style="font-size: 24px; font-weight: bold; color: #4CAF50;">42</div>
+                                <div style="font-size: 14px; color: #666;">正确</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 24px; font-weight: bold; color: #F44336;">8</div>
+                                <div style="font-size: 14px; color: #666;">错误</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 24px; font-weight: bold;">84%</div>
+                                <div style="font-size: 14px; color: #666;">正确率</div>
+                            </div>
+                        </div>
+                        <div style="font-size: 14px; color: #666;">用时: 10分钟</div>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px; font-weight: bold;">单词详情</div>
+                    
+                    <div class="word-result-list">
+                        <div class="word-result correct">
+                            <div class="word-result-content">
+                                <div class="word-text">apple</div>
+                                <div class="word-phonetic">/ˈæpl/</div>
+                            </div>
+                            <div class="word-result-status">
+                                <i class="iconfont icon-check" style="color: #4CAF50;"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="word-result correct">
+                            <div class="word-result-content">
+                                <div class="word-text">banana</div>
+                                <div class="word-phonetic">/bəˈnɑːnə/</div>
+                            </div>
+                            <div class="word-result-status">
+                                <i class="iconfont icon-check" style="color: #4CAF50;"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="word-result wrong">
+                            <div class="word-result-content">
+                                <div class="word-text">orange</div>
+                                <div class="word-phonetic">/ˈɒrɪndʒ/</div>
+                                <div class="word-wrong">您的答案: orang</div>
+                            </div>
+                            <div class="word-result-status">
+                                <i class="iconfont icon-close" style="color: #F44336;"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="word-result correct">
+                            <div class="word-result-content">
+                                <div class="word-text">strawberry</div>
+                                <div class="word-phonetic">/ˈstrɔːbəri/</div>
+                            </div>
+                            <div class="word-result-status">
+                                <i class="iconfont icon-check" style="color: #4CAF50;"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; margin-top: 20px;">
+                        <button class="action-button" style="flex: 1;">
+                            <i class="iconfont icon-save"></i> 保存结果
+                        </button>
+                        <button class="action-button" style="flex: 1; background-color: #4CAF50; color: white;">
+                            <i class="iconfont icon-retry"></i> 重新听写
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 错题本页面 -->
+        <div>
+            <h2 class="screen-title">错题本</h2>
+            <div class="screen">
+                <div class="header">
+                    <div style="position: absolute; left: 15px;">
+                        <i class="iconfont icon-back"></i>
+                    </div>
+                    错题本
+                </div>
+                <div class="content">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div style="font-size: 14px; color: #888;">共收集 15 个错误单词</div>
+                        <button class="action-button">
+                            <i class="iconfont icon-play"></i> 听写错题
+                        </button>
+                    </div>
+                    
+                    <div class="word-result-list">
+                        <div class="word-result wrong">
+                            <div class="word-result-content">
+                                <div class="word-text">accommodate</div>
+                                <div class="word-phonetic">/əˈkɒmədeɪt/</div>
+                                <div class="word-wrong">您的答案: acommodate</div>
+                            </div>
+                            <div class="word-result-status">
+                                <i class="iconfont icon-sound"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="word-result wrong">
+                            <div class="word-result-content">
+                                <div class="word-text">necessary</div>
+                                <div class="word-phonetic">/ˈnesəsəri/</div>
+                                <div class="word-wrong">您的答案: neccessary</div>
+                            </div>
+                            <div class="word-result-status">
+                                <i class="iconfont icon-sound"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="word-result wrong">
+                            <div class="word-result-content">
+                                <div class="word-text">embarrass</div>
+                                <div class="word-phonetic">/ɪmˈbærəs/</div>
+                                <div class="word-wrong">您的答案: embarass</div>
+                            </div>
+                            <div class="word-result-status">
+                                <i class="iconfont icon-sound"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="word-result wrong">
+                            <div class="word-result-content">
+                                <div class="word-text">occurrence</div>
+                                <div class="word-phonetic">/əˈkʌrəns/</div>
+                                <div class="word-wrong">您的答案: occurence</div>
+                            </div>
+                            <div class="word-result-status">
+                                <i class="iconfont icon-sound"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 听写设置页面 -->
+        <div>
+            <h2 class="screen-title">听写设置</h2>
+            <div class="screen">
+                <div class="header">
+                    <div style="position: absolute; left: 15px;">
+                        <i class="iconfont icon-back"></i>
+                    </div>
+                    听写设置
+                </div>
+                <div class="content">
+                    <div class="setting-group">
+                        <div class="setting-title">播放设置</div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-label">播放速度</div>
+                            <div class="setting-value">
+                                <select class="select">
+                                    <option>0.8x</option>
+                                    <option selected>1.0x</option>
+                                    <option>1.2x</option>
+                                    <option>1.5x</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-label">自动播放间隔</div>
+                            <div class="setting-value">
+                                <select class="select">
+                                    <option>3秒</option>
+                                    <option selected>5秒</option>
+                                    <option>8秒</option>
+                                    <option>10秒</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-label">自动播放</div>
+                            <div class="setting-value">
+                                <label class="switch">
+                                    <input type="checkbox" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <div class="setting-title">发音设置</div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-label">发音类型</div>
+                            <div class="setting-value">
+                                <select class="select">
+                                    <option selected>美式发音</option>
+                                    <option>英式发音</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-label">发音音量</div>
+                            <div class="setting-value">
+                                <select class="select">
+                                    <option>低</option>
+                                    <option>中</option>
+                                    <option selected>高</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <div class="setting-title">其他设置</div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-label">显示音标</div>
+                            <div class="setting-value">
+                                <label class="switch">
+                                    <input type="checkbox" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-label">自动收集错题</div>
+                            <div class="setting-value">
+                                <label class="switch">
+                                    <input type="checkbox" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-label">夜间模式</div>
+                            <div class="setting-value">
+                                <label class="switch">
+                                    <input type="checkbox">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

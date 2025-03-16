@@ -1,0 +1,36 @@
+<!-- 听写完成页面 -->
+<view class="container">
+  <!-- 使用Vant导航栏组件 -->
+  <van-nav-bar title="听写完成" left-text="返回" left-arrow fixed placeholder safe-area-inset-top bind:click-left="onBackClick" custom-class="custom-nav" title-class="nav-title" />
+  <view class="content">
+    <scroll-view class="scrollable-content" enhanced="true" show-scrollbar="true" bounces="true" scroll-with-animation="true" enable-flex="true">
+      <!-- 完成图标 -->
+      <view class="complete-icon-container">
+        <image class="complete-icon" src="/images/icons/完成.png" mode="aspectFit"></image>
+      </view>
+      <!-- 完成提示文字 -->
+      <view class="complete-text">真棒，听写完成！</view>
+      <!-- 步骤指引 -->
+      <view class="steps-container">
+        <!-- 第一步 -->
+        <view class="step-item">
+          <view class="step-header">
+            <text class="step-title">拍照上传听写结果</text>
+          </view>
+          <view class="step-content">
+            <view class="upload-container" bindtap="uploadImage">
+              <view class="upload-placeholder">
+                <view class="upload-icon">+</view>
+              </view>
+            </view>
+          </view>
+        </view>
+        <!-- 第二步 -->
+      </view>
+    </scroll-view>
+    <!-- 保存按钮 - 固定在底部 -->
+    <view class="button-container">
+      <button class="save-button" bindtap="saveDictationResult">核对听写结果</button>
+    </view>
+  </view>
+</view>

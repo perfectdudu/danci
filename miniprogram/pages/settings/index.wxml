@@ -1,0 +1,92 @@
+<!--听写设置页面-->
+<view class="container">
+  <view class="header">
+    <navigator url="/pages/profile/index" open-type="switchTab" class="back-button">
+      <text class="back-text">返回</text>
+    </navigator>
+    <view class="header-title">听写设置</view>
+  </view>
+
+  <view class="settings-content">
+    <!-- 播放设置 -->
+    <view class="setting-group">
+      <view class="setting-title">播放设置</view>
+      
+      <view class="setting-item">
+        <view class="setting-label">播放速度</view>
+        <view class="setting-value">
+          <picker bindchange="onSpeedChange" value="{{speedIndex}}" range="{{speedOptions}}">
+            <view class="picker-value">{{speedOptions[speedIndex]}}</view>
+          </picker>
+        </view>
+      </view>
+      
+      <view class="setting-item">
+        <view class="setting-label">自动播放间隔</view>
+        <view class="setting-value">
+          <picker bindchange="onIntervalChange" value="{{intervalIndex}}" range="{{intervalOptions}}">
+            <view class="picker-value">{{intervalOptions[intervalIndex]}}</view>
+          </picker>
+        </view>
+      </view>
+      
+      <view class="setting-item">
+        <view class="setting-label">自动播放</view>
+        <view class="setting-value">
+          <switch checked="{{playSettings.autoPlay}}" bindchange="onAutoPlayChange" color="#4CAF50"/>
+        </view>
+      </view>
+    </view>
+
+    <!-- 发音设置 -->
+    <view class="setting-group">
+      <view class="setting-title">发音设置</view>
+      
+      <view class="setting-item">
+        <view class="setting-label">发音类型</view>
+        <view class="setting-value">
+          <picker bindchange="onPronTypeChange" value="{{pronTypeIndex}}" range="{{pronTypeOptions}}">
+            <view class="picker-value">{{pronTypeOptions[pronTypeIndex]}}</view>
+          </picker>
+        </view>
+      </view>
+      
+      <view class="setting-item">
+        <view class="setting-label">发音音量</view>
+        <view class="setting-value">
+          <picker bindchange="onVolumeChange" value="{{volumeIndex}}" range="{{volumeOptions}}">
+            <view class="picker-value">{{volumeOptions[volumeIndex]}}</view>
+          </picker>
+        </view>
+      </view>
+    </view>
+
+    <!-- 其他设置 -->
+    <view class="setting-group">
+      <view class="setting-title">其他设置</view>
+      
+      <view class="setting-item">
+        <view class="setting-label">显示音标</view>
+        <view class="setting-value">
+          <switch checked="{{otherSettings.showPhonetic}}" bindchange="onShowPhoneticChange" color="#4CAF50"/>
+        </view>
+      </view>
+      
+      <view class="setting-item">
+        <view class="setting-label">自动收集错题</view>
+        <view class="setting-value">
+          <switch checked="{{otherSettings.collectMistakes}}" bindchange="onCollectMistakesChange" color="#4CAF50"/>
+        </view>
+      </view>
+      
+      <view class="setting-item">
+        <view class="setting-label">夜间模式</view>
+        <view class="setting-value">
+          <switch checked="{{otherSettings.darkMode}}" bindchange="onDarkModeChange" color="#4CAF50"/>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="save-button" bindtap="saveSettings">保存设置</view>
+</view> 

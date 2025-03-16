@@ -1,0 +1,296 @@
+/* 首页样式 */
+.container {
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
+  background-color: #f0f9ff;
+}
+
+/* 输入区域 */
+.input-area {
+  background-color: white;
+  border-radius: 24rpx 24rpx 0 0;
+  padding: 30rpx 0 0 0; /* 移除左右内边距，让滚动条贴边缘 */
+  margin: 30rpx 30rpx 20rpx 30rpx;
+  border: 1rpx solid #e8f5e9;
+  width: calc(100% - 60rpx);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0 6rpx 20rpx rgba(76, 175, 80, 0.1);
+  max-height: 60vh;
+  overflow: hidden;
+}
+
+/* 输入框标题和计数 */
+.input-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 30rpx 20rpx;
+  border-bottom: 1rpx solid #e8f5e9;
+}
+
+.input-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #43A047;
+}
+
+.word-counter {
+  font-size: 28rpx;
+  color: #888;
+}
+
+.word-counter-warning {
+  color: #ff6b6b;
+}
+
+/* 文本输入区容器 */
+.textarea-container {
+  width: 100%;
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background-color: #fafafa; /* 输入区域浅色背景 */
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 70rpx; /* 为底部按钮留出空间 */
+}
+
+/* 文本输入框 */
+textarea {
+  width: 100%;
+  flex: 1;
+  min-height: 200rpx;
+  border: none;
+  background-color: transparent;
+  font-size: 32rpx;
+  line-height: 1.5;
+  padding: 20rpx 30rpx; /* 增加内边距但保持贴边滚动 */
+  box-sizing: border-box;
+}
+
+/* 示例文本样式 */
+.example-text {
+  padding: 20rpx 30rpx;
+  opacity: 0.7;
+}
+
+/* 英文文本样式 */
+.en-text {
+  font-family: 'Trebuchet MS', 'Comic Sans MS', sans-serif;
+  font-weight: bold;
+  color: #2E7D32;
+  font-size: 36rpx;
+  letter-spacing: 1rpx;
+}
+
+/* 中文文本样式 */
+.cn-text {
+  font-family: 'Microsoft YaHei', 'STXihei', sans-serif;
+  font-weight: bold;
+  color: #333333;
+  font-size: 34rpx;
+}
+
+/* 底部按钮栏 */
+.bottom-buttons {
+  position: absolute;
+  right: 20rpx;
+  bottom: 15rpx;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  z-index: 10;
+}
+
+.action-button {
+  padding: 8rpx 20rpx;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 30rpx;
+  border: 1rpx solid #e8f5e9;
+  margin-left: 20rpx; /* 10px的间距 */
+  box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.action-button:active {
+  transform: scale(0.95);
+  background-color: #f0f9f0;
+}
+
+.action-text {
+  font-size: 24rpx;
+  color: #4CAF50;
+  font-weight: 500;
+}
+
+/* 移除不再使用的清空按钮样式 */
+.clear-button {
+  display: none;
+}
+
+.function-button {
+  display: none;
+}
+
+.button-group {
+  display: none;
+}
+
+/* 开始听写按钮 */
+.start-button {
+  background-color: #4CAF50;
+  color: white;
+  border-radius: 48rpx;
+  height: 96rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 36rpx;
+  font-weight: bold;
+  margin: 0 30rpx 30rpx;
+  box-shadow: 0 6rpx 16rpx rgba(76, 175, 80, 0.3);
+  width: calc(100% - 60rpx) !important;
+  box-sizing: border-box;
+  padding: 0; /* 确保按钮内部不会有内边距 */
+  line-height: 1; /* 重置行高 */
+}
+
+.word-list-section {
+  margin-top: 40rpx;
+  width: 100%;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+  color: #333;
+}
+
+.section-title text.iconfont {
+  margin-right: 10rpx;
+  font-size: 36rpx;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.word-item {
+  background-color: white;
+  border-radius: 24rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  border: 1rpx solid #eee;
+}
+
+.word-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 16rpx;
+  color: #333;
+}
+
+.word-count {
+  font-size: 26rpx;
+  color: #888;
+  margin-bottom: 20rpx;
+}
+
+.word-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 20rpx;
+}
+
+.word-action {
+  font-size: 26rpx;
+  color: #4CAF50;
+}
+
+.empty-tip {
+  text-align: center;
+  color: #888;
+  font-size: 28rpx;
+  margin-top: 60rpx;
+}
+
+/* 广告区域 */
+.ad-section {
+  width: calc(100% - 60rpx);
+  margin: 0 30rpx 30rpx;
+  background-color: #f0f9f1;
+  border-radius: 24rpx;
+  padding: 20rpx;
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+.ad-content {
+  background-color: white;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  display: flex;
+  align-items: center;
+  border: 1rpx solid #e8f5e9;
+}
+
+.ad-image {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 12rpx;
+  margin-right: 30rpx;
+  flex-shrink: 0;
+}
+
+.ad-text {
+  flex: 1;
+}
+
+.ad-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+  color: #333;
+}
+
+.ad-desc {
+  font-size: 26rpx;
+  color: #888;
+}
+
+/* 图标图片样式 */
+.icon-image {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 10rpx;
+  vertical-align: middle;
+}
+
+.action-button .icon-image {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 10rpx;
+  vertical-align: middle;
+}
+
+.start-button .icon-image {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 10rpx;
+  vertical-align: middle;
+}
+
+.section-title .icon-image {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 10rpx;
+  vertical-align: middle;
+} 

@@ -1,0 +1,104 @@
+/* 听写记录页面样式 */
+.container {
+  padding: 30rpx;
+}
+
+.record-list {
+  width: 100%;
+}
+
+.record-item {
+  background-color: white;
+  border-radius: 24rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  border: 1rpx solid #eee;
+}
+
+.record-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.record-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.record-date {
+  font-size: 26rpx;
+  color: #888;
+}
+
+.record-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+  background-color: #f9f9f9;
+  border-radius: 16rpx;
+  padding: 20rpx;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 4rpx;
+}
+
+.stat-value.correct {
+  color: #4CAF50;
+}
+
+.stat-value.wrong {
+  color: #F44336;
+}
+
+.stat-label {
+  font-size: 24rpx;
+  color: #888;
+}
+
+.record-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 30rpx;
+}
+
+.record-action {
+  color: #4CAF50;
+  font-size: 26rpx;
+}
+
+.empty-tip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 0;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+}
+
+.empty-text {
+  font-size: 30rpx;
+  color: #888;
+  margin-bottom: 30rpx;
+}
+
+.empty-action {
+  background-color: #4CAF50;
+  color: white;
+  padding: 16rpx 40rpx;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+} 

@@ -1,0 +1,191 @@
+/**app.wxss**/
+/* 引入Vant组件样式 */
+@import "./miniprogram_npm/@vant/weapp/common/index.wxss";
+
+/* 通用Vant导航栏样式 */
+.custom-nav {
+  background-color: #ffffff !important;
+  height: 44px !important;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1) !important;
+  border-bottom: 1px solid #eee !important;
+}
+
+/* 导航栏容器固定处理 */
+.van-nav-bar {
+  height: 44px !important;
+}
+
+.van-nav-bar__content {
+  height: 44px !important;
+}
+
+/* 导航栏占位元素 */
+.nav-placeholder {
+  height: 44px;
+  width: 100%;
+  background-color: transparent;
+}
+
+/* 安全区域适配 */
+.safe-area-inset-top {
+  padding-top: constant(safe-area-inset-top); /* iOS 11.0-11.2 */
+  padding-top: env(safe-area-inset-top); /* iOS 11.2+ */
+}
+
+/* 导航栏标题样式 */
+.nav-title {
+  color: #333333 !important;
+  font-weight: bold !important;
+}
+
+/* 覆盖Vant导航栏返回按钮颜色 */
+.van-nav-bar__text {
+  color: #4CAF50 !important;
+}
+
+.van-icon-arrow-left {
+  color: #4CAF50 !important;
+}
+
+page {
+  background-color: #f5f5f5;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 14px;
+  color: #333;
+  box-sizing: border-box;
+  --primary-color: #4CAF50;
+  --primary-light: #e8f5e9;
+  --background-color: #f0f9ff;
+  --text-color: #333333;
+  --border-color: #e8f5e9;
+}
+
+view, text, button, input, textarea {
+  box-sizing: border-box;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 20rpx;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.page-section {
+  margin-bottom: 20rpx;
+}
+
+.btn-primary {
+  background-color: #4CAF50;
+  color: #fff;
+  border: none;
+  border-radius: 48rpx;
+  font-size: 32rpx;
+  font-weight: bold;
+  box-shadow: 0 4rpx 16rpx rgba(76, 175, 80, 0.3);
+}
+
+.btn-default {
+  background-color: #e8f5e9;
+  color: #4CAF50;
+  border: none;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+}
+
+.card {
+  background-color: white;
+  border-radius: 24rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  border: 1rpx solid #eee;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.align-center {
+  align-items: center;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-primary {
+  color: #4CAF50;
+}
+
+.text-danger {
+  color: #F44336;
+}
+
+.text-gray {
+  color: #888;
+}
+
+.font-bold {
+  font-weight: bold;
+}
+
+button {
+  background: initial;
+  padding: 0;
+  margin: 0;
+}
+
+button:focus{
+  outline: 0;
+}
+
+button::after{
+  border: none;
+}
+
+/* 自定义导航栏覆盖样式 */
+.custom-nav {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-bottom: none !important;
+}
+
+.van-nav-bar__content {
+  background: transparent !important;
+}
+
+/* 导航栏标题样式 */
+.nav-title {
+  color: #4CAF50 !important;
+  font-weight: bold !important;
+}
+
+/* 覆盖Vant导航栏返回按钮颜色 */
+.van-nav-bar__text {
+  color: #4CAF50 !important;
+}
+
+.van-icon-arrow-left {
+  color: #4CAF50 !important;
+}
+.van-icon-arrow-left::before {
+  color: #4CAF50 !important;
+}

@@ -1,0 +1,158 @@
+@font-face {
+  font-family: "iconfont"; /* Project id 4859004 */
+  /* 使用相对路径引用本地字体文件 */
+  src: url('iconfont.woff2') format('woff2'),
+       url('iconfont.woff') format('woff'),
+       url('iconfont.ttf') format('truetype');
+}
+
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 32rpx;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  display: inline-block;
+}
+
+/* 使用直接的Unicode字符替代字体图标，确保在任何环境下都能显示 */
+.icon-list:before {
+  content: "\e600";
+  color: #4CAF50;
+}
+
+.icon-search:before {
+  content: "\e8ef";
+  color: #4CAF50;
+}
+
+.icon-save:before {
+  content: "\e75a";
+  color: #4CAF50;
+}
+
+.icon-camera:before {
+  content: "\e620";
+  color: #4CAF50;
+}
+
+.icon-settings:before {
+  content: "\e600";
+  color: #4CAF50;
+}
+
+.icon-sound:before {
+  content: "\e627";
+  color: #4CAF50;
+}
+
+.icon-close:before {
+  content: "\e7fc";
+  color: #4CAF50;
+}
+
+.icon-check:before {
+  content: "\e7fc";
+  color: #4CAF50;
+}
+
+.icon-stats:before {
+  content: "\e618";
+  color: #4CAF50;
+}
+
+.icon-book:before {
+  content: "\e67c";
+  color: #4CAF50;
+}
+
+.icon-share:before {
+  content: "\e7e7";
+  color: #4CAF50;
+}
+
+.icon-feedback:before {
+  content: "\e8e9";
+  color: #4CAF50;
+}
+
+.icon-about:before {
+  content: "\e77e";
+  color: #4CAF50;
+}
+
+.icon-retry:before {
+  content: "\e7d9";
+  color: #4CAF50;
+}
+
+.icon-clear:before {
+  content: "\e63e";
+  color: #4CAF50;
+}
+
+.icon-sort:before {
+  content: "\e766";
+  color: #4CAF50;
+}
+
+.icon-back:before {
+  content: "\e7ed";
+  color: #4CAF50;
+}
+
+.icon-delete:before {
+  content: "\e7c3";
+  color: #4CAF50;
+}
+
+.icon-play:before {
+  content: "\e627";
+  color: #4CAF50;
+}
+
+.icon-home:before {
+  content: "\e620";
+  color: #4CAF50;
+}
+
+.icon-record:before {
+  content: "\e60f";
+  color: #4CAF50;
+}
+
+.icon-profile:before {
+  content: "\e80b";
+  color: #4CAF50;
+}
+
+.icon-question:before {
+  content: "\e67a";
+  color: #4CAF50;
+}
+
+/* 以下是图标定义，根据下载的图标修改 */
+.icon-zanting:before {
+  content: "\e627";
+  color: #4CAF50;
+}
+
+.icon-jilu-bangong:before {
+  content: "\e60f";
+  color: #4CAF50;
+}
+
+.icon-A:before {
+  content: "\e600";
+  color: #4CAF50;
+}
+
+.icon-tuya:before {
+  content: "\e75a";
+  color: #4CAF50;
+}
+
+.icon-shouye:before {
+  content: "\e620";
+  color: #4CAF50;
+} 

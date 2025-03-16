@@ -1,0 +1,55 @@
+<!--首页-->
+<view class="container">
+  <view class="input-area">
+    <!-- 输入框标题和计数 -->
+    <view class="input-header">
+      <view class="input-title">单词输入</view>
+      <view class="word-counter {{wordCount > 90 ? 'word-counter-warning' : ''}}">{{wordCount}}/100</view>
+    </view>
+    
+    <!-- 输入框 -->
+    <view class="textarea-container">
+      <textarea placeholder="请输入或粘贴需要听写的单词，每行一个..." bindinput="onInputChange" value="{{inputWords}}" auto-height="true" show-confirm-bar="false" maxlength="5000"></textarea>
+    </view>
+    
+    <!-- 示例文字 -->
+    <!-- <view wx:if="{{!inputWords}}" class="example-text">
+      <text class="en-text">例子: apple</text>
+    </view> -->
+    
+    <!-- 底部按钮栏 -->
+    <view class="bottom-buttons">
+      <!-- 拍照按钮始终显示 -->
+      <view class="action-button" bindtap="scanWords">
+        <text class="action-text">拍照</text>
+      </view>
+      
+      <!-- 保存和清空按钮只在有输入内容时显示 -->
+      <block wx:if="{{inputWords}}">
+        <!-- <view class="action-button" bindtap="saveWordList">
+          <text class="action-text">保存</text>
+        </view> -->
+        
+        <view class="action-button" bindtap="clearInput">
+          <text class="action-text">清空</text>
+        </view>
+      </block>
+    </view>
+  </view>
+  
+  <!-- 开始听写按钮 -->
+  <button class="start-button" bindtap="startDictation">
+    开始听写
+  </button>
+  
+  <!-- 广告位 -->
+  <view class="ad-section">
+    <view class="ad-content">
+      <image class="ad-image" src="/images/icons/avatar.png" mode="aspectFill"></image>
+      <view class="ad-text">
+        <view class="ad-title">这里我打算放个广告</view>
+        <view class="ad-desc">诚招广告商</view>
+      </view>
+    </view>
+  </view>
+</view> 

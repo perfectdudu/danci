@@ -1,0 +1,44 @@
+{
+  "id": "4859004",
+  "name": "单词听写",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "3779679",
+      "name": "暂停",
+      "font_class": "zanting",
+      "unicode": "e627",
+      "unicode_decimal": 58919
+    },
+    {
+      "icon_id": "3923249",
+      "name": "记录-办公－16",
+      "font_class": "jilu-bangong",
+      "unicode": "e60f",
+      "unicode_decimal": 58895
+    },
+    {
+      "icon_id": "6652596",
+      "name": "首页",
+      "font_class": "A-",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    },
+    {
+      "icon_id": "6999491",
+      "name": "播放",
+      "font_class": "tuya-",
+      "unicode": "e75a",
+      "unicode_decimal": 59226
+    },
+    {
+      "icon_id": "7708047",
+      "name": "首页",
+      "font_class": "shouye",
+      "unicode": "e620",
+      "unicode_decimal": 58912
+    }
+  ]
+}

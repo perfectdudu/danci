@@ -1,0 +1,10 @@
+<view class="custom-header" style="padding-top: {{safeAreaTop}}px; height: {{headerHeight}}px;">
+  <view class="status-bar" style="height: {{statusBarHeight}}px;"></view>
+  <view class="header-content" style="height: {{menuButtonHeight}}px;">
+    <view class="back-button" bindtap="navigateBack" wx:if="{{showBack}}" style="top: {{(menuButtonTop - statusBarHeight) / 2}}px;">
+      <text class="back-text">返回</text>
+    </view>
+    <view class="header-title">{{title}}</view>
+  </view>
+</view>
+<view class="header-placeholder" style="height: {{headerHeight}}px;"></view> 

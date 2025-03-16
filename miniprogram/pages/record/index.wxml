@@ -1,0 +1,39 @@
+<!--听写记录页面-->
+<view class="container">
+  <view class="record-list">
+    <block wx:if="{{recordList.length > 0}}">
+      <view class="record-item" wx:for="{{recordList}}" wx:key="id">
+        <view class="record-header">
+          <view class="record-title">{{item.title}}</view>
+          <view class="record-date">{{item.date}}</view>
+        </view>
+        <view class="record-stats">
+          <view class="stat-item">
+            <view class="stat-value correct">{{item.correctCount}}</view>
+            <view class="stat-label">正确</view>
+          </view>
+          <view class="stat-item">
+            <view class="stat-value wrong">{{item.wrongCount}}</view>
+            <view class="stat-label">错误</view>
+          </view>
+          <view class="stat-item">
+            <view class="stat-value">{{item.totalCount}}</view>
+            <view class="stat-label">总数</view>
+          </view>
+          <view class="stat-item">
+            <view class="stat-value">{{item.accuracy}}%</view>
+            <view class="stat-label">正确率</view>
+          </view>
+        </view>
+        <view class="record-actions">
+          <text class="record-action" bindtap="viewDetail" data-id="{{item.id}}">查看详情</text>
+        </view>
+      </view>
+    </block>
+    <view wx:else class="empty-tip">
+      <view class="empty-icon">📝</view>
+      <view class="empty-text">暂无听写记录</view>
+      <view class="empty-action" bindtap="goToHome">去听写单词</view>
+    </view>
+  </view>
+</view> 

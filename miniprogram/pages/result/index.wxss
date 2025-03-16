@@ -1,0 +1,217 @@
+/* 听写结果页面样式 */
+.container {
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f8f8f8;
+  position: relative;
+}
+
+/* 自定义Vant导航栏样式覆盖 */
+.custom-nav {
+  background-color: #4CAF50 !important;
+  border-bottom: none !important;
+}
+
+/* 导航栏标题样式 */
+.nav-title {
+  color: #ffffff !important;
+  font-weight: bold !important;
+}
+
+/* 覆盖Vant导航栏返回按钮颜色 */
+.van-nav-bar__text {
+  color: #ffffff !important;
+}
+
+.van-icon-arrow-left {
+  color: #ffffff !important;
+}
+
+/* 隐藏原有的头部 */
+.result-header {
+  display: none;
+}
+
+.content {
+  flex: 1;
+  padding: 30rpx; /* 已有导航栏placeholder，不需要额外的顶部padding */
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.result-header {
+  height: 88rpx;
+  background-color: #4CAF50;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  font-size: 36rpx;
+  font-weight: bold;
+  width: 100%;
+}
+
+.back-button {
+  position: absolute;
+  left: 20rpx;
+  display: flex;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 30rpx;
+  padding: 6rpx 16rpx;
+  border: 2rpx solid #4CAF50;
+}
+
+.back-text {
+  font-size: 28rpx;
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+.header-title {
+  font-size: 36rpx;
+}
+
+.result-summary {
+  background-color: #e8f5e9;
+  border-radius: 24rpx;
+  padding: 40rpx;
+  text-align: center;
+  margin: 30rpx;
+}
+
+.result-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 30rpx;
+}
+
+.result-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 30rpx;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 48rpx;
+  font-weight: bold;
+  margin-bottom: 8rpx;
+}
+
+.stat-value.correct {
+  color: #4CAF50;
+}
+
+.stat-value.wrong {
+  color: #F44336;
+}
+
+.stat-label {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.time-spent {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.word-detail-section {
+  padding: 0 30rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 30rpx;
+}
+
+.word-list {
+  margin-bottom: 30rpx;
+}
+
+.word-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 30rpx;
+  border-bottom: 1rpx solid #eee;
+}
+
+.word-item.correct {
+  background-color: rgba(76, 175, 80, 0.05);
+}
+
+.word-item.wrong {
+  background-color: rgba(244, 67, 54, 0.05);
+}
+
+.word-text {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 6rpx;
+}
+
+.word-phonetic {
+  font-size: 26rpx;
+  color: #888;
+  margin-bottom: 6rpx;
+}
+
+.word-answer {
+  font-size: 26rpx;
+  color: #F44336;
+}
+
+.word-status {
+  font-size: 40rpx;
+}
+
+.word-status .icon-check {
+  color: #4CAF50;
+}
+
+.word-status .icon-close {
+  color: #F44336;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 30rpx;
+  padding: 30rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.action-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx 0;
+  background-color: #e8f5e9;
+  color: #4CAF50;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  border: none;
+  margin: 0;
+  font-weight: normal;
+}
+
+.action-button.primary {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.action-button text {
+  margin-right: 10rpx;
+} 

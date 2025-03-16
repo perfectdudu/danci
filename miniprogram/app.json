@@ -1,0 +1,43 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/record/index",
+    "pages/profile/index",
+    "pages/dictation/index",
+    "pages/result/index",
+    "pages/mistakes/index",
+    "pages/settings/index",
+    "pages/wordList/index",
+    "pages/dictation-complete/index",
+    "pages/dictation-result/index"
+  ],
+  "window": {
+    "backgroundColor": "#F6F6F6",
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#4CAF50",
+    "navigationBarTitleText": "单词听写助手",
+    "navigationBarTextStyle": "white"
+  },
+  "sitemapLocation": "sitemap.json",
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#4CAF50",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "text": "首页",
+        "iconPath": "images/icons/nz.png",
+        "selectedIconPath": "images/icons/nz选中.png"
+      },
+      {
+        "pagePath": "pages/record/index",
+        "text": "听写记录",
+        "iconPath": "images/icons/记录.png",
+        "selectedIconPath": "images/icons/记录选中.png"
+      }
+    ]
+  }
+}
