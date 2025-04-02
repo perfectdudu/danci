@@ -2,7 +2,8 @@ const app = getApp();
 
 Page({
   data: {
-    recordList: [] // 听写记录列表
+    recordList: [], // 听写记录列表
+    loading: false // 加载状态
   },
 
   onLoad: function () {
@@ -21,74 +22,88 @@ Page({
       });
     }
   },
+  
+  // 启用下拉刷新
+  onPullDownRefresh: function() {
+    // 加载最新记录
+    this.loadRecords(true);
+  },
 
   // 加载听写记录
-  loadRecords: function () {
-    // 如果用户已登录，从云数据库加载记录
-    if (app.globalData.userInfo) {
-      const db = wx.cloud.database();
-      db.collection('dictationRecords')
-        .where({
-          _openid: app.globalData.userInfo.openId
-        })
-        .orderBy('createTime', 'desc') // 按创建时间降序排列
-        .get()
-        .then(res => {
-          // 格式化日期
-          const records = res.data.map(record => {
+  loadRecords: function (isPullDown = false) {
+    // 设置加载状态
+    this.setData({ loading: true });
+    
+    wx.cloud.callContainer({
+      "config": {
+        "env": "prod-5g5ywun6829a4db5"
+      },
+      "path": "/record/getlist",
+      "header": {
+        "X-WX-SERVICE": "word-dictation",
+        "content-type": "application/json",
+        "Authorization": `Bearer ${app.globalData.token}`
+      },
+      "method": "POST",
+      "data": {},
+      success: (res) => {
+        console.log('获取听写记录成功', res);
+        
+        if (res.statusCode === 200 && res.data && res.data.code === 200) {
+          // 处理返回的记录数据
+          const records = res.data.data || [];
+          
+          // 格式化记录数据
+          const formattedRecords = records.map(record => {
+            const date = new Date(record.create_time);
             return {
-              ...record,
-              date: this.formatDate(record.createTime)
+              id: record.id,
+              title: record.name || '未命名记录',
+              date: this.formatDate(date),
+              time: `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`,
+              words: record.words ? record.words.split(',').length : 0,
+              errorWords: record.error_words ? record.error_words.split(',').filter(w => w.trim()).length : 0,
+              imageUrl: record.pic_url || '',
+              correctRate: record.words ? Math.round(((record.words.split(',').length - (record.error_words ? record.error_words.split(',').filter(w => w.trim()).length : 0)) / record.words.split(',').length) * 100) : 0,
+              serial: record.serial
             };
           });
+
+          console.log('格式化后的记录数据', formattedRecords);
           
           this.setData({
-            recordList: records
+            recordList: formattedRecords,
+            loading: false
           });
-        })
-        .catch(err => {
-          console.error('获取听写记录失败：', err);
+        } else {
+          console.error('获取听写记录失败', res);
           wx.showToast({
-            title: '加载记录失败',
+            title: '获取记录失败',
             icon: 'none'
           });
-        });
-    } else {
-      // 使用示例数据
-      const exampleRecords = [
-        {
-          id: 'record1',
-          title: '英语四级词汇',
-          correctCount: 42,
-          wrongCount: 8,
-          totalCount: 50,
-          accuracy: 84,
-          date: '2023-06-15',
-          words: [
-            { word: 'apple', correct: true, userAnswer: 'apple', phonetic: '/ˈæpl/' },
-            { word: 'banana', correct: true, userAnswer: 'banana', phonetic: '/bəˈnɑːnə/' },
-            { word: 'orange', correct: false, userAnswer: 'orang', phonetic: '/ˈɒrɪndʒ/' }
-          ]
-        },
-        {
-          id: 'record2',
-          title: '英语六级核心词汇',
-          correctCount: 25,
-          wrongCount: 5,
-          totalCount: 30,
-          accuracy: 83,
-          date: '2023-06-10',
-          words: [
-            { word: 'accommodate', correct: false, userAnswer: 'acommodate', phonetic: '/əˈkɒmədeɪt/' },
-            { word: 'necessary', correct: false, userAnswer: 'neccessary', phonetic: '/ˈnesəsəri/' }
-          ]
+          this.setData({ loading: false });
         }
-      ];
-      
-      this.setData({
-        recordList: exampleRecords
-      });
-    }
+        
+        // 如果是下拉刷新，停止下拉刷新动画
+        if (isPullDown) {
+          wx.stopPullDownRefresh();
+        }
+      },
+      fail: (err) => {
+        console.error('获取听写记录请求失败', err);
+        wx.showToast({
+          title: '网络错误，请稍后再试',
+          icon: 'none'
+        });
+        
+        this.setData({ loading: false });
+        
+        // 如果是下拉刷新，停止下拉刷新动画
+        if (isPullDown) {
+          wx.stopPullDownRefresh();
+        }
+      }
+    });
   },
 
   // 格式化日期
@@ -98,46 +113,31 @@ Page({
     // 如果是字符串日期，转换为Date对象
     if (typeof date === 'string') {
       date = new Date(date);
-    } else if (date.toDate) {
-      // 如果是Firestore时间戳
-      date = date.toDate();
     }
     
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   },
 
-  // 查看听写详情
-  viewDetail: function (e) {
-    const id = e.currentTarget.dataset.id;
-    wx.navigateTo({
-      url: `/pages/dictation-result/index?id=${id}`
-    });
-  },
-
-  // 重新听写
-  retryDictation: function (e) {
+  // 查看记录详情
+  viewDetail: function(e) {
     const id = e.currentTarget.dataset.id;
     const record = this.data.recordList.find(item => item.id === id);
-    
-    if (!record) {
-      wx.showToast({
-        title: '未找到记录',
-        icon: 'none'
+    if (record && record.serial) {
+      wx.navigateTo({
+        url: `/pages/dictation-result/index?serial=${record.serial}`
       });
-      return;
     }
-    
-    // 提取原始单词列表
-    const words = record.words.map(item => item.word);
-    
-    // 存入全局变量，以便听写页面使用
-    app.globalData.currentDictationWords = words;
-    app.globalData.currentDictationTitle = record.title;
-    
-    // 跳转到听写页面
-    wx.navigateTo({
-      url: '/pages/dictation/index'
-    });
+  },
+
+  // 预览图片
+  previewImage: function(e) {
+    const url = e.currentTarget.dataset.url;
+    if (url) {
+      wx.previewImage({
+        urls: [url],
+        current: url
+      });
+    }
   },
 
   // 跳转到首页

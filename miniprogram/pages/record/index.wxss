@@ -1,87 +1,145 @@
 /* 听写记录页面样式 */
 .container {
-  padding: 30rpx;
+  min-height: 100vh;
+  background: #f5f5f5;
+  display: flex;
+  flex-direction: column;
 }
 
+/* 记录列表 */
 .record-list {
   width: 100%;
+  padding: 20rpx;
+  box-sizing: border-box;
+  min-height: 100vh;
+  background: #f5f5f5;
 }
 
+/* 记录项 */
 .record-item {
-  background-color: white;
-  border-radius: 24rpx;
+  background: #fff;
+  border-radius: 16rpx;
   padding: 30rpx;
-  margin-bottom: 30rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
-  border: 1rpx solid #eee;
+  margin: 0 20rpx 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  width: calc(100% - 40rpx);
+  box-sizing: border-box;
 }
 
 .record-header {
+  margin-bottom: 20rpx;
+  padding-bottom: 20rpx;
+  border-bottom: 2rpx solid #f5f5f5;
+}
+
+.record-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.record-title-row {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 20rpx;
+  align-items: center;
+  gap: 20rpx;
 }
 
 .record-title {
   font-size: 32rpx;
   font-weight: bold;
   color: #333;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.record-date {
-  font-size: 26rpx;
-  color: #888;
+.record-image {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 8rpx;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.1);
 }
 
+.record-image image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.record-time {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 记录内容区域 */
+.record-content {
+  padding-top: 20rpx;
+}
+
+/* 记录统计 */
 .record-stats {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 20rpx;
-  background-color: #f9f9f9;
-  border-radius: 16rpx;
-  padding: 20rpx;
+  justify-content: space-around;
+  align-items: center;
 }
 
 .stat-item {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .stat-value {
-  font-size: 32rpx;
+  font-size: 40rpx;
   font-weight: bold;
-  margin-bottom: 4rpx;
-}
-
-.stat-value.correct {
   color: #4CAF50;
+  margin-bottom: 8rpx;
 }
 
+/* 错误数字样式 */
 .stat-value.wrong {
-  color: #F44336;
+  color: #f44336;
 }
 
 .stat-label {
   font-size: 24rpx;
-  color: #888;
+  color: #666;
 }
 
+.correct {
+  color: #4CAF50;
+}
+
+.wrong {
+  color: #F44336;
+}
+
+/* 记录操作 */
 .record-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 30rpx;
 }
 
 .record-action {
-  color: #4CAF50;
-  font-size: 26rpx;
+  font-size: 28rpx;
+  color: #2196F3;
+  padding: 10rpx 20rpx;
 }
 
-.empty-tip {
+/* 空状态 */
+.empty-list {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 80rpx 0;
+  padding: 100rpx 40rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  margin: 40rpx;
 }
 
 .empty-icon {
@@ -90,15 +148,21 @@
 }
 
 .empty-text {
-  font-size: 30rpx;
-  color: #888;
-  margin-bottom: 30rpx;
+  font-size: 32rpx;
+  color: #333;
+  margin-bottom: 10rpx;
 }
 
-.empty-action {
-  background-color: #4CAF50;
-  color: white;
-  padding: 16rpx 40rpx;
-  border-radius: 40rpx;
+.empty-tip {
   font-size: 28rpx;
+  color: #999;
+}
+
+/* 下拉提示 */
+.pull-tip {
+  text-align: center;
+  font-size: 24rpx;
+  color: #999;
+  padding: 20rpx 0;
+  margin-top: auto;
 } 
