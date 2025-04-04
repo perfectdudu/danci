@@ -14,7 +14,6 @@
     "navigationBarTitleText": "单词听写助手",
     "navigationBarTextStyle": "white"
   },
-  "requiredBackgroundModes": ["audio"],
   "sitemapLocation": "sitemap.json",
   "style": "v2",
   "lazyCodeLoading": "requiredComponents",
