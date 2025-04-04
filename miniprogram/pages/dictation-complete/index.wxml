@@ -13,11 +13,11 @@
       <!-- 拍照上传区域 -->
       <view class="upload-section">
         <view class="upload-container" bindtap="uploadImage">
-          <view class="upload-placeholder" wx:if="{{!uploadedImage && !imageUrl}}">
+          <view class="upload-placeholder" wx:if="{{!uploadedImage}}">
             <view class="upload-icon">+</view>
             <view class="upload-hint">点击上传</view>
           </view>
-          <image wx:if="{{uploadedImage || imageUrl}}" class="uploaded-image" src="{{uploadedImage || imageUrl}}" mode="aspectFit"></image>
+          <image wx:if="{{uploadedImage}}" class="uploaded-image" src="{{uploadedImage}}" mode="aspectFit"></image>
         </view>
       </view>
     </scroll-view>

@@ -1,0 +1,38 @@
+<view class="feedback-container">
+  <view class="feedback-form">
+    <view class="form-item">
+      <view class="form-label">反馈内容</view>
+      <textarea 
+        class="feedback-textarea" 
+        placeholder="请描述您的问题或建议，我们将努力改进..." 
+        bindinput="onContentInput"
+        value="{{feedbackContent}}"
+        maxlength="500"
+        auto-height
+      ></textarea>
+      <view class="form-tip">您的反馈是我们持续改进的动力</view>
+    </view>
+    
+    <!-- <view class="form-item">
+      <view class="form-label">联系方式 <text class="optional">(选填)</text></view>
+      <input 
+        class="contact-input" 
+        placeholder="微信号/手机号/邮箱，方便我们回复您" 
+        bindinput="onContactInput"
+        value="{{contactInfo}}"
+      />
+    </view> -->
+  </view>
+  
+  <button 
+    class="submit-btn {{submitted ? 'submitted' : ''}}" 
+    bindtap="submitFeedback"
+    disabled="{{submitted}}"
+  >
+    {{submitted ? '提交成功' : '提交反馈'}}
+  </button>
+  
+  <view class="feedback-footer">
+    <view class="footer-text">感谢您对单词听写助手的支持</view>
+  </view>
+</view>

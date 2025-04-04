@@ -28,13 +28,13 @@
     </view>
     <view class="record-content">
       <view class="record-stats">
-        <view class="stat-item">
-          <text class="stat-value">{{correctCount + wrongCount}}</text>
-          <text class="stat-label">单词总数</text>
+        <view class="stat-item {{filterType === 'all' ? 'active-all' : ''}}" bindtap="toggleFilter" data-filter="all">
+          <text class="stat-value {{filterType === 'all' ? 'active' : ''}}">{{correctCount + wrongCount}}</text>
+          <text class="stat-label {{filterType === 'all' ? 'active' : ''}}">单词总数</text>
         </view>
-        <view class="stat-item">
-          <text class="stat-value wrong">{{wrongCount}}</text>
-          <text class="stat-label">错误单词</text>
+        <view class="stat-item {{filterType === 'wrong' ? 'active-wrong' : ''}}" bindtap="toggleFilter" data-filter="wrong">
+          <text class="stat-value wrong {{filterType === 'wrong' ? 'active' : ''}}">{{wrongCount}}</text>
+          <text class="stat-label {{filterType === 'wrong' ? 'active' : ''}}">错误单词</text>
         </view>
         <view class="stat-item">
           <text class="stat-value">{{correctRate}}%</text>
@@ -46,11 +46,12 @@
   
   <!-- 单词详情部分 -->
   <view class="details-section">
-    <view class="section-title">单词详情</view>
+    <view class="section-title">单词详情 <text class="filter-hint">({{filterType === 'all' ? '全部单词' : '仅错误单词'}})</text></view>
 
     <view class="word-list">
-      <block wx:for="{{wordList}}" wx:key="word">
+      <block wx:for="{{filteredWordList}}" wx:key="word" wx:for-index="idx">
         <view class="word-item {{item.isCorrect ? 'correct' : 'wrong'}}">
+          <view class="word-index">{{idx + 1}}.</view>
           <view class="word-text">{{item.word}}</view>
           <view wx:if="{{!item.isCorrect}}" class="word-answer">
             您的答案: {{item.userInput}}

@@ -110,6 +110,33 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+  padding: 10rpx 20rpx;
+  border-radius: 10rpx;
+  transition: all 0.3s;
+}
+
+/* 可点击的统计项样式 */
+.stat-item:nth-child(1), .stat-item:nth-child(2) {
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  min-width: 120rpx;
+}
+
+.stat-item:nth-child(1):active, .stat-item:nth-child(2):active {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* 选中状态的背景效果 */
+.stat-item.active-all {
+  background-color: rgba(76, 175, 80, 0.15);
+  box-shadow: 0 2rpx 8rpx rgba(76, 175, 80, 0.2);
+}
+
+.stat-item.active-wrong {
+  background-color: rgba(244, 67, 54, 0.15);
+  box-shadow: 0 2rpx 8rpx rgba(244, 67, 54, 0.2);
 }
 
 .stat-value {
@@ -117,6 +144,7 @@
   font-weight: bold;
   color: #4CAF50;
   margin-bottom: 8rpx;
+  transition: all 0.3s;
 }
 
 /* 错误数字样式 */
@@ -124,9 +152,25 @@
   color: #f44336;
 }
 
+/* 激活状态样式 */
+.stat-value.active {
+  transform: scale(1.1);
+  text-shadow: 0 0 8rpx rgba(76, 175, 80, 0.4);
+}
+
+.stat-value.wrong.active {
+  text-shadow: 0 0 8rpx rgba(244, 67, 54, 0.4);
+}
+
 .stat-label {
   font-size: 24rpx;
   color: #666;
+  transition: all 0.3s;
+}
+
+.stat-label.active {
+  color: #333;
+  font-weight: bold;
 }
 
 .correct {
@@ -135,6 +179,13 @@
 
 .wrong {
   color: #F44336;
+}
+
+/* 过滤提示文本 */
+.filter-hint {
+  font-size: 24rpx;
+  color: #666;
+  font-weight: normal;
 }
 
 /* 记录操作 */
@@ -198,27 +249,41 @@
 }
 
 .word-item {
-  padding: 30rpx;
-  margin-bottom: 20rpx;
-  border-radius: 16rpx;
+  padding: 15rpx 20rpx;
+  margin-bottom: 10rpx;
+  border-radius: 8rpx;
+  background-color: #f9f9f9;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 .word-item.correct {
-  background-color: #f1f8e9;
+  background-color: rgba(76, 175, 80, 0.1);
 }
 
 .word-item.wrong {
-  background-color: #ffebee;
+  background-color: rgba(244, 67, 54, 0.1);
+}
+
+.word-index {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #666;
+  margin-right: 10rpx;
+  min-width: 40rpx;
 }
 
 .word-text {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333;
-  margin-bottom: 10rpx;
+  flex: 1;
 }
 
 .word-answer {
+  width: 100%;
+  margin-top: 10rpx;
+  margin-left: 50rpx;
   font-size: 28rpx;
   color: #F44336;
 }

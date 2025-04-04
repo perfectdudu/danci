@@ -87,10 +87,10 @@ Page({
     console.log('准备自动播放第一个单词');
     
     // 确保页面准备就绪后播放音频（使用更长的延迟时间确保稳定性）
-    setTimeout(() => {
+      setTimeout(() => {
       console.log('触发自动播放');
       this.playWord();
-    }, 500);
+      }, 500);
   },
 
   // 页面显示时触发
@@ -173,7 +173,7 @@ Page({
     
     // 重置播放次数
     this.playCount = 1;
-    this.setData({
+      this.setData({
       playCount: 1
     });
   },
@@ -187,6 +187,12 @@ Page({
     this.setData({
       playCount: 1  // 默认从1开始，即第一个点高亮
     });
+    
+    // 清除之前的定时器，确保不会有重复的播放
+    if (this.playTimer) {
+      clearTimeout(this.playTimer);
+      this.playTimer = null;
+    }
     
     // 创建或重用音频上下文
     if (!this.innerAudioContext) {
@@ -221,14 +227,30 @@ Page({
               playCount: this.playCount
             });
             
-            // 如果播放次数小于等于3，则立即再次播放同一个单词（不停顿）
+            // 如果播放次数小于等于3，则等待1秒后再次播放同一个单词
             if (this.playCount <= 3) {
-              console.log(`立即开始播放第${this.playCount}次`);
-              // 立即重新播放，不需要延迟
-              this.innerAudioContext.play();
+              console.log(`等待1秒后开始播放第${this.playCount}次`);
+              
+              // 清除可能存在的之前的定时器
+              if (this.playTimer) {
+                clearTimeout(this.playTimer);
+              }
+              
+              // 延迟1秒后再次播放
+              this.playTimer = setTimeout(() => {
+                if (this.data.isPlaying) { // 确保用户没有暂停
+                  console.log(`开始播放第${this.playCount}次`);
+                  this.innerAudioContext.play();
+                }
+              }, 1000); // 设置1秒的停顿时间
             } else {
               // 播放完3次后重置计数 UI 不重置
               console.log('已完成3次播放，准备播放下一个单词');
+              
+              // 清除可能存在的之前的定时器
+              if (this.playTimer) {
+                clearTimeout(this.playTimer);
+              }
               
               // 在1秒后自动播放下一个单词
               console.log('等待1秒后播放下一个单词');
@@ -242,7 +264,7 @@ Page({
                   console.log('开始播放下一个单词');
                   this.autoPlayNext();
                 }
-              }, 1000);
+              }, 1000); // 设置1秒的停顿时间
             }
           };
           
@@ -261,6 +283,12 @@ Page({
               isPlaying: false,
               playCount: 1
             });
+            
+            // 清除可能存在的定时器
+            if (this.playTimer) {
+              clearTimeout(this.playTimer);
+              this.playTimer = null;
+            }
             
             // 尝试播放下一个单词
             setTimeout(() => {
@@ -285,6 +313,12 @@ Page({
             playCount: 1
           });
           
+          // 清除可能存在的定时器
+          if (this.playTimer) {
+            clearTimeout(this.playTimer);
+            this.playTimer = null;
+          }
+          
           // 尝试播放下一个单词
           setTimeout(() => {
             this.autoPlayNext();
@@ -304,6 +338,12 @@ Page({
         isPlaying: false,
         playCount: 1
       });
+      
+      // 清除可能存在的定时器
+      if (this.playTimer) {
+        clearTimeout(this.playTimer);
+        this.playTimer = null;
+      }
       
       // 尝试播放下一个单词
       setTimeout(() => {
@@ -491,7 +531,7 @@ Page({
   },
 
   // 结束听写
-  endDictation: function () {
+  endDictation: function() {
     wx.showModal({
       title: '结束听写',
       content: '确定要结束当前听写吗？',
@@ -505,10 +545,10 @@ Page({
       }
     });
   },
-
+  
   // 完成听写
-  finishDictation: function() {
-    console.log('完成听写');
+  finishDictation: function(skipPrompts) {
+    console.log('完成听写', skipPrompts ? '(静默模式)' : '');
     
     // 停止音频播放
     this.stopAudioPlay();
@@ -527,15 +567,18 @@ Page({
       };
     });
     
-    // 提示用户听写已完成
-    wx.showToast({
-      title: '听写已完成',
-      icon: 'success'
-    });
+    // 只有在非静默模式下才显示Toast提示
+    if (!skipPrompts) {
+      // 提示用户听写已完成
+      wx.showToast({
+        title: '听写已完成',
+        icon: 'success'
+      });
+    }
     
     // 准备要保存的记录数据
     const recordData = {
-      title: this.data.dictationTitle || '未命名听写',
+      title: this.data.title || '未命名听写',
       date: new Date().getTime(),
       words: wordList.map((item, index) => {
         return {
@@ -546,6 +589,7 @@ Page({
       }),
       totalWords: wordList.length,
       correctCount: Object.values(userAnswers).filter(item => item.correct).length,
+      serial: Date.now().toString() // 添加序列号到这里，避免多次生成
     };
     
     console.log('准备保存听写记录:', recordData);
@@ -556,7 +600,6 @@ Page({
       const records = wx.getStorageSync('dictationRecords') || [];
       
       // 添加新记录并生成唯一标识
-      recordData.serial = Date.now().toString();
       records.unshift(recordData);
       
       // 保存回本地存储
@@ -570,6 +613,21 @@ Page({
       // 如果已经在播放提示音，则不再重复播放
       if (this.isPlayingCompletionAudio) {
         console.log('提示音正在播放中，不重复播放');
+        return;
+      }
+      
+      // 如果是静默模式，直接跳转到核对页面，不播放提示音
+      if (skipPrompts) {
+        // 直接跳转到核对页面
+        wx.navigateTo({
+          url: `/pages/dictation-complete/index?serial=${recordData.serial}`,
+          success: () => {
+            console.log('成功跳转到核对听写页面');
+          },
+          fail: (err) => {
+            console.error('跳转失败:', err);
+          }
+        });
         return;
       }
       
@@ -652,94 +710,6 @@ Page({
     });
   },
 
-  // 确认退出听写
-  confirmExit: function () {
-    wx.showModal({
-      title: '确认结束',
-      content: '确定要结束当前听写吗？',
-      confirmText: '确认结束',
-      cancelText: '继续听写',
-      confirmColor: '#4CAF50',
-      success: res => {
-        if (res.confirm) {
-          // 停止当前播放
-          this.stopAudioPlay();
-          
-          // 获取用户输入的答案
-          const userAnswers = {};
-          const wordList = this.data.wordList || [];
-          
-          // 遍历所有单词，收集用户的答案
-          wordList.forEach((item, index) => {
-            const inputValue = this.data.answers[index] || '';
-            userAnswers[item.word] = {
-              word: item.word,
-              userInput: inputValue,
-              correct: this.isAnswerCorrect(item.word, inputValue)
-            };
-          });
-          
-          // 准备要保存的记录数据
-          const recordData = {
-            title: this.data.title || '未命名听写',
-            date: new Date().getTime(),
-            words: wordList.map((item, index) => {
-              return {
-                word: item.word,
-                userInput: this.data.answers[index] || '',
-                correct: this.isAnswerCorrect(item.word, this.data.answers[index] || '')
-              };
-            }),
-            totalWords: wordList.length,
-            correctCount: Object.values(userAnswers).filter(item => item.correct).length,
-          };
-          
-          // 添加新记录并生成唯一标识
-          recordData.serial = Date.now().toString();
-          
-          // 保存记录到本地存储
-          try {
-            const records = wx.getStorageSync('dictationRecords') || [];
-            records.unshift(recordData);
-            wx.setStorageSync('dictationRecords', records);
-            
-            // 清理临时音频文件
-            this.cleanupTempAudioFiles();
-            
-            // 如果已经在播放提示音，则不再重复播放
-            if (this.isPlayingCompletionAudio) {
-              console.log('提示音正在播放中，不重复播放');
-              return;
-            }
-            
-            // 标记正在播放提示音
-            this.isPlayingCompletionAudio = true;
-            
-            // 播放完成提示音
-            this.playCompletionAudio(() => {
-              // 播放完成后重置标记
-              this.isPlayingCompletionAudio = false;
-              
-              // 跳转到核对页面
-              wx.navigateTo({
-                url: `/pages/dictation-complete/index?serial=${recordData.serial}`,
-                success: () => {
-                  console.log('成功跳转到核对听写页面');
-                },
-                fail: (err) => {
-                  console.error('跳转失败:', err);
-                }
-              });
-            });
-          } catch (error) {
-            console.error('保存听写记录失败:', error);
-            wx.navigateBack();
-          }
-        }
-      }
-    });
-  },
-
   // 组件销毁时清理资源
   onUnload: function() {
     // 停止音频播放
@@ -789,7 +759,7 @@ Page({
       }
     });
   },
-
+  
   // 随机排序数组
   shuffleArray: function (array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -798,7 +768,7 @@ Page({
     }
     return array;
   },
-
+  
   // 判断答案是否正确
   isAnswerCorrect: function(word, answer) {
     if (!word || !answer) return false;
@@ -859,8 +829,8 @@ Page({
         // 获取音频Base64数据
         const audioBase64 = response.data.data.Audio;
         
-        // 将Base64转换为临时文件
-        this.base64ToTempFile(audioBase64, "completion_audio.mp3").then(filePath => {
+        // 将Base64转换为永久文件
+        this.base64ToFile(audioBase64, "completion_audio.mp3").then(filePath => {
           console.log('完成提示音生成成功:', filePath);
           this.completionAudioPath = filePath;
         }).catch(error => {
@@ -873,18 +843,30 @@ Page({
       console.error('完成提示音生成请求失败:', error);
     });
   },
-  
-  // Base64转临时文件（复用已有功能）
-  base64ToTempFile: function(base64Data, fileName) {
+
+  // Base64转永久文件
+  base64ToFile: function(base64Data, fileName) {
     return new Promise((resolve, reject) => {
       const filePath = `${wx.env.USER_DATA_PATH}/${fileName}`;
       const buffer = wx.base64ToArrayBuffer(base64Data);
       
-      wx.getFileSystemManager().writeFile({
+      const fs = wx.getFileSystemManager();
+      
+      fs.writeFile({
         filePath: filePath,
         data: buffer,
         encoding: 'binary',
         success: () => {
+          console.log('语音文件已永久保存:', filePath);
+          
+          // 将文件路径记录到全局存储
+          const savedAudioFiles = wx.getStorageSync('saved_audio_files') || {};
+          savedAudioFiles[fileName] = {
+            path: filePath,
+            timestamp: Date.now()
+          };
+          wx.setStorageSync('saved_audio_files', savedAudioFiles);
+          
           resolve(filePath);
         },
         fail: (error) => {
@@ -892,6 +874,47 @@ Page({
           reject(error);
         }
       });
+    });
+  },
+
+  /**
+   * 返回按钮点击处理
+   */
+  onBackClick() {
+      wx.showModal({
+      title: '确认退出',
+      content: '确定要退出听写吗？当前进度将不会保存。',
+      confirmText: '退出',
+      confirmColor: '#FF6B6B',
+      cancelText: '继续听写',
+        success: (res) => {
+          if (res.confirm) {
+          // 停止音频播放
+          this.innerAudioContext.stop();
+          
+          // 返回上一页
+          wx.navigateBack();
+        }
+      }
+    });
+  },
+  
+  /**
+   * 确认结束听写
+   */
+  confirmExit() {
+    wx.showModal({
+      title: '确认完成',
+      content: '确定完成听写吗？将无法再继续听写本次内容。',
+      confirmText: '完成',
+      confirmColor: '#4CAF50',
+      cancelText: '继续听写',
+      success: (res) => {
+        if (res.confirm) {
+          // 传递true参数，表示跳过提示音和toast
+          this.finishDictation(true);
+        }
+      }
     });
   },
 }) 

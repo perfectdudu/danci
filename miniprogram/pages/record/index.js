@@ -29,6 +29,67 @@ Page({
     this.loadRecords(true);
   },
 
+  // 解析GMT格式时间
+  parseGMTTime: function(gmtString) {
+    if (!gmtString) return null;
+    
+    try {
+      // 对于形如 "Fri, 04 Apr 2025 22:08:31 GMT" 的时间字符串
+      const gmtDate = new Date(gmtString);
+      if (isNaN(gmtDate.getTime())) {
+        console.warn('无法解析GMT时间:', gmtString);
+        return null;
+      }
+      return gmtDate;
+    } catch (e) {
+      console.error('解析GMT时间出错:', e);
+      return null;
+    }
+  },
+
+  // 格式化日期
+  formatDate: function (gmtString) {
+    if (!gmtString) return '';
+    
+    const date = this.parseGMTTime(gmtString);
+    if (!date) return '';
+    
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+  },
+  
+  // 从GMT字符串直接提取时间部分
+  extractTimeFromGMT: function(gmtString) {
+    if (!gmtString) return '';
+    
+    // 尝试匹配形如 "Fri, 04 Apr 2025 22:08:31 GMT" 中的时间部分
+    const timeRegex = /(\d{2}):(\d{2}):\d{2}/;
+    const match = gmtString.match(timeRegex);
+    
+    if (match && match.length >= 3) {
+      // 提取小时和分钟
+      const hours = match[1];
+      const minutes = match[2];
+      return `${hours}:${minutes}`;
+    }
+    
+    // 如果无法匹配，回退到使用Date对象
+    try {
+      const date = new Date(gmtString);
+      if (!isNaN(date.getTime())) {
+        return String(date.getUTCHours()).padStart(2, '0') + ':' + 
+               String(date.getUTCMinutes()).padStart(2, '0');
+      }
+    } catch (e) {
+      console.error('提取时间失败:', e);
+    }
+    
+    return '';
+  },
+
   // 加载听写记录
   loadRecords: function (isPullDown = false) {
     // 设置加载状态
@@ -55,12 +116,22 @@ Page({
           
           // 格式化记录数据
           const formattedRecords = records.map(record => {
-            const date = new Date(record.create_time);
+            // 直接使用原始的GMT时间字符串
+            const gmtString = record.create_time || '';
+            
+            // 生成日期和时间字符串
+            const dateStr = this.formatDate(gmtString);
+            // 直接从GMT字符串中提取时间部分，不进行时区转换
+            const timeStr = this.extractTimeFromGMT(gmtString);
+            
+            // 输出日志用于调试
+            console.log(`原始时间: ${gmtString}, 格式化后: ${dateStr} ${timeStr}`);
+            
             return {
               id: record.id,
               title: record.name || '未命名记录',
-              date: this.formatDate(date),
-              time: `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`,
+              date: dateStr,
+              time: timeStr,
               words: record.words ? record.words.split(',').length : 0,
               errorWords: record.error_words ? record.error_words.split(',').filter(w => w.trim()).length : 0,
               imageUrl: record.pic_url || '',
@@ -104,18 +175,6 @@ Page({
         }
       }
     });
-  },
-
-  // 格式化日期
-  formatDate: function (date) {
-    if (!date) return '';
-    
-    // 如果是字符串日期，转换为Date对象
-    if (typeof date === 'string') {
-      date = new Date(date);
-    }
-    
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   },
 
   // 查看记录详情

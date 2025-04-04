@@ -1,4 +1,7 @@
 {
   "usingComponents": {},
-  "navigationBarTitleText": "听写记录"
+  "navigationBarTitleText": "听写记录",
+  "enablePullDownRefresh": true,
+  "backgroundColor": "#e8f5e9",
+  "backgroundTextStyle": "dark"
 } 

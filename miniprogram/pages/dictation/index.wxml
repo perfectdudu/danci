@@ -8,7 +8,7 @@
     fixed
     placeholder
     safe-area-inset-top
-    bind:click-left="confirmExit"
+    bind:click-left="onBackClick"
     custom-class="custom-nav"
     title-class="nav-title"
   />
@@ -16,6 +16,13 @@
   <view class="content">
     <!-- 播放动画区域 -->
     <view class="audio-animation-container">
+      <!-- 播放次数指示点 -->
+      <view class="play-counter">
+        <view class="dot {{playCount >= 1 ? 'active' : ''}}"></view>
+        <view class="dot {{playCount >= 2 ? 'active' : ''}}"></view>
+        <view class="dot {{playCount >= 3 ? 'active' : ''}}"></view>
+      </view>
+
       <!-- 波浪动画 -->
       <view class="wave-container {{isPlaying ? 'playing' : ''}}">
         <view class="wave wave1"></view>
@@ -23,13 +30,9 @@
         <view class="wave wave3"></view>
         <view class="wave wave4"></view>
         <view class="wave wave5"></view>
-      </view>
-      
-      <!-- 播放次数指示点 -->
-      <view class="play-counter">
-        <view class="dot {{playCount >= 1 ? 'active' : ''}}"></view>
-        <view class="dot {{playCount >= 2 ? 'active' : ''}}"></view>
-        <view class="dot {{playCount >= 3 ? 'active' : ''}}"></view>
+        <view class="wave wave6"></view>
+        <view class="wave wave7"></view>
+        <view class="wave wave8"></view>
       </view>
     </view>
     
