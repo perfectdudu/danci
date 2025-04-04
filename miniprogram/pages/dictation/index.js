@@ -38,9 +38,9 @@ Page({
     });
     
     // 确保销毁可能存在的旧音频实例
-    if (this.innerAudioContext) {
-      this.innerAudioContext.destroy();
-      this.innerAudioContext = null;
+    if (this.backgroundAudioManager) {
+      this.backgroundAudioManager.destroy();
+      this.backgroundAudioManager = null;
     }
     
     // 从全局变量获取单词列表
@@ -227,15 +227,13 @@ Page({
     }
     
     // 停止音频播放
-    if (this.innerAudioContext) {
-      // 移除事件监听
-      this.innerAudioContext.offEnded();
-      this.innerAudioContext.offError();
+    if (this.backgroundAudioManager) {
       // 停止播放
-      this.innerAudioContext.stop();
-      // 销毁实例
-      this.innerAudioContext.destroy();
-      this.innerAudioContext = null;
+      try {
+        this.backgroundAudioManager.stop();
+      } catch (err) {
+        console.error('停止音频播放失败:', err);
+      }
     }
     
     // 重置播放次数
@@ -261,25 +259,19 @@ Page({
       this.playTimer = null;
     }
     
-    // 确保先销毁可能存在的旧音频实例
-    if (this.innerAudioContext) {
-      // 先停止当前可能正在播放的音频
+    // 确保先停止并销毁可能存在的旧音频实例
+    if (this.backgroundAudioManager) {
       try {
-        this.innerAudioContext.stop();
-        // 移除事件监听
-        this.innerAudioContext.offEnded();
-        this.innerAudioContext.offError();
-        // 销毁实例
-        this.innerAudioContext.destroy();
+        // 先停止当前可能正在播放的音频
+        this.backgroundAudioManager.stop();
       } catch (err) {
-        console.error('销毁音频实例失败:', err);
+        console.error('停止后台音频失败:', err);
       }
-      this.innerAudioContext = null;
     }
     
-    // 创建新的音频上下文
-    this.innerAudioContext = wx.createInnerAudioContext();
-    console.log('创建新的音频实例，准备播放音频:', voiceUrl);
+    // 创建新的背景音频管理器
+    this.backgroundAudioManager = wx.getBackgroundAudioManager();
+    console.log('创建新的后台音频实例，准备播放音频:', voiceUrl);
     
     try {
       // 检查文件是否存在
@@ -289,8 +281,13 @@ Page({
         success: () => {
           console.log('音频文件存在:', voiceUrl);
           
+          // 设置必要的属性（BackgroundAudioManager需要设置title等属性）
+          this.backgroundAudioManager.title = this.data.currentWord.word || '单词播放';
+          this.backgroundAudioManager.singer = '听写助手';
+          this.backgroundAudioManager.coverImgUrl = 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0';
+          
           // 设置音频源
-          this.innerAudioContext.src = voiceUrl;
+          this.backgroundAudioManager.src = voiceUrl;
           
           // 创建播放函数，用于递归播放
           const playNextRepetition = () => {
@@ -316,7 +313,10 @@ Page({
               this.playTimer = setTimeout(() => {
                 if (this.data.isPlaying) { // 确保用户没有暂停
                   console.log(`开始播放第${this.playCount}次`);
-                  this.innerAudioContext.play();
+                  // 重新播放单词
+                  this.backgroundAudioManager.src = voiceUrl;
+                  this.backgroundAudioManager.title = this.data.currentWord.word || '单词播放';
+                  this.backgroundAudioManager.play();
                 }
               }, 1000); // 设置1秒的停顿时间
             } else {
@@ -346,9 +346,9 @@ Page({
           };
           
           // 设置播放结束事件处理
-          this.innerAudioContext.onEnded(playNextRepetition);
+          this.backgroundAudioManager.onEnded(playNextRepetition);
           
-          this.innerAudioContext.onError((err) => {
+          this.backgroundAudioManager.onError((err) => {
             console.error('播放语音失败:', err);
             wx.showToast({
               title: '播放失败',
@@ -367,8 +367,24 @@ Page({
             }, 2000);
           });
           
-          // 开始播放
-          this.innerAudioContext.play();
+          // 监听用户在系统音乐播放器操作
+          this.backgroundAudioManager.onPause(() => {
+            console.log('用户在系统播放器暂停了播放');
+            this.setData({ isPlaying: false });
+          });
+          
+          this.backgroundAudioManager.onPlay(() => {
+            console.log('用户在系统播放器恢复了播放');
+            this.setData({ isPlaying: true });
+          });
+          
+          this.backgroundAudioManager.onStop(() => {
+            console.log('音频播放被停止');
+            this.setData({ isPlaying: false });
+          });
+          
+          // 自动开始播放
+          this.backgroundAudioManager.play();
         },
         fail: (err) => {
           console.error('音频文件不存在:', err);
@@ -721,132 +737,93 @@ Page({
 
   // 播放完成提示音
   playCompletionAudio: function(callback) {
-    console.log('准备播放完成提示音');
+    const completionAudioPath = `${wx.env.USER_DATA_PATH}/completion_audio.mp3`;
     
-    if (!this.completionAudioPath) {
-      console.error('完成提示音未生成');
-      if (callback) callback();
-      return;
-    }
+    console.log('尝试播放完成提示音:', completionAudioPath);
     
-    // 确保停止所有其他音频播放
-    this.stopAudioPlay();
-    
-    // 重置播放计数
-    this.completionPlayCount = 0;
-    
-    // 创建新的音频上下文（与单词播放分开）
-    try {
-      if (this.completionAudioContext) {
-        try {
-          this.completionAudioContext.destroy();
-        } catch (e) {
-          console.error('销毁旧的完成提示音上下文失败:', e);
-        }
-      }
-      
-      const completionAudio = wx.createInnerAudioContext();
-      this.completionAudioContext = completionAudio;
-      
-      completionAudio.src = this.completionAudioPath;
-      
-      // 播放函数
-      const playCompletionRepetition = () => {
-        this.completionPlayCount++;
-        console.log(`完成提示音播放次数: ${this.completionPlayCount}/3`);
+    // 检查文件是否存在
+    const fs = wx.getFileSystemManager();
+    fs.access({
+      path: completionAudioPath,
+      success: () => {
+        console.log('完成提示音文件存在，开始播放');
         
-        if (this.completionPlayCount < 3) {
-          // 还未播放3次，等待一段时间后继续播放
-          setTimeout(() => {
-            try {
-              completionAudio.play();
-            } catch (err) {
-              console.error('重复播放完成提示音失败:', err);
-              // 出错时直接调用回调
-              completionAudio.destroy();
-              if (callback) callback();
-            }
-          }, 500);
-        } else {
-          console.log('完成提示音播放3次完毕');
-          // 确保销毁音频实例，避免重复播放
+        // 重置播放计数
+        this.completionPlayCount = 0;
+        
+        // 停止当前正在播放的单词音频
+        if (this.backgroundAudioManager) {
           try {
-            completionAudio.destroy();
-          } catch (e) {
-            console.error('销毁完成提示音上下文失败:', e);
-          }
-          this.completionAudioContext = null;
-          if (callback) callback();
-        }
-      };
-      
-      // 监听播放结束事件
-      completionAudio.onEnded(playCompletionRepetition);
-      
-      // 监听错误事件
-      completionAudio.onError((err) => {
-        console.error('完成提示音播放出错:', err);
-        try {
-          completionAudio.destroy();
-        } catch (e) {
-          console.error('销毁错误的完成提示音上下文失败:', e);
-        }
-        this.completionAudioContext = null;
-        if (callback) callback();
-      });
-      
-      // 确保音频准备好后再播放第一次
-      completionAudio.onCanplay(() => {
-        // 等待一段时间再开始播放
-        setTimeout(() => {
-          try {
-            // 开始播放
-            completionAudio.play();
+            this.backgroundAudioManager.stop();
           } catch (err) {
-            console.error('播放完成提示音失败:', err);
-            try {
-              completionAudio.destroy();
-            } catch (e) {
-              console.error('销毁失败的完成提示音上下文失败:', e);
-            }
-            this.completionAudioContext = null;
-            if (callback) callback();
+            console.error('停止后台音频失败:', err);
           }
-        }, 200);
-      });
-    } catch (error) {
-      console.error('创建完成提示音上下文失败:', error);
-      if (callback) callback();
-    }
+        }
+        
+        // 创建后台音频管理器
+        this.completionBackgroundAudio = wx.getBackgroundAudioManager();
+        this.completionBackgroundAudio.title = '听写完成提示音';
+        this.completionBackgroundAudio.singer = '听写助手';
+        this.completionBackgroundAudio.coverImgUrl = 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0';
+        this.completionBackgroundAudio.src = completionAudioPath;
+        
+        // 播放完成事件
+        this.completionBackgroundAudio.onEnded(() => {
+          console.log('完成提示音播放结束');
+          this.completionPlayCount++;
+          
+          // 最多播放3次
+          if (this.completionPlayCount < 3) {
+            console.log(`开始第${this.completionPlayCount + 1}次播放完成提示音`);
+            this.completionBackgroundAudio.src = completionAudioPath;
+            this.completionBackgroundAudio.title = '听写完成提示音';
+            this.completionBackgroundAudio.play();
+          } else {
+            console.log('完成提示音已播放3次，停止播放');
+          }
+        });
+        
+        // 播放错误处理
+        this.completionBackgroundAudio.onError((err) => {
+          console.error('播放完成提示音失败:', err);
+        });
+        
+        // 开始播放
+        this.completionBackgroundAudio.play();
+      },
+      fail: (err) => {
+        console.error('完成提示音文件不存在:', err);
+      }
+    });
   },
 
   // 组件销毁时清理资源
   onUnload: function() {
-    // 停止音频播放
-    this.stopAudioPlay();
+    console.log('页面卸载，清理资源');
     
-    // 释放音频资源
-    if (this.innerAudioContext) {
-      try {
-        this.innerAudioContext.destroy();
-      } catch (e) {
-        console.error('销毁innerAudioContext失败:', e);
-      }
-      this.innerAudioContext = null;
+    // 清除定时器
+    if (this.playTimer) {
+      clearTimeout(this.playTimer);
+      this.playTimer = null;
     }
     
-    // 释放完成提示音资源
-    if (this.completionAudioContext) {
+    // 停止并销毁音频上下文
+    if (this.backgroundAudioManager) {
       try {
-        this.completionAudioContext.destroy();
-      } catch (e) {
-        console.error('销毁completionAudioContext失败:', e);
+        this.backgroundAudioManager.stop();
+      } catch (err) {
+        console.error('停止后台音频失败:', err);
       }
-      this.completionAudioContext = null;
     }
     
-    // 清理临时音频文件
-    this.cleanupTempAudioFiles();
+    // 停止并销毁完成提示音
+    if (this.completionBackgroundAudio) {
+      try {
+        this.completionBackgroundAudio.stop();
+      } catch (err) {
+        console.error('停止完成提示音失败:', err);
+      }
+    }
   },
 
   // 清理临时音频文件
@@ -1014,9 +991,9 @@ Page({
         success: (res) => {
           if (res.confirm) {
           // 停止音频播放
-          if (this.innerAudioContext) {
+          if (this.backgroundAudioManager) {
             try {
-              this.innerAudioContext.stop();
+              this.backgroundAudioManager.stop();
             } catch (e) {
               console.error('停止音频播放失败:', e);
             }
