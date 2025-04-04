@@ -45,7 +45,7 @@
   <!-- 广告位 -->
   <view class="ad-section">
     <view class="ad-content">
-      <image class="ad-image" src="/images/icons/avatar.png" mode="aspectFill"></image>
+      <!-- <image class="ad-image" src="/images/icons/avatar.png" mode="aspectFill"></image> -->
       <view class="ad-text">
         <view class="ad-title">这里我打算放个广告</view>
         <view class="ad-desc">诚招广告商</view>

@@ -10,6 +10,9 @@ Page({
   onLoad: function () {
     // 从云数据库加载单词列表
     this.loadWordLists();
+    
+    // 从本地缓存恢复上次输入的单词
+    this.loadInputWordsFromStorage();
   },
 
   onShow: function () {
@@ -22,6 +25,25 @@ Page({
         selected: 0
       });
     }
+  },
+
+  // 从本地缓存恢复上次输入的单词
+  loadInputWordsFromStorage: function() {
+    const inputWords = wx.getStorageSync('last_input_words') || '';
+    const wordCount = inputWords ? inputWords.split(/\n/).filter(line => line.trim()).length : 0;
+    
+    this.setData({
+      inputWords,
+      wordCount
+    });
+  },
+
+  // 保存输入的单词到本地缓存
+  saveInputWordsToStorage: function(inputWords) {
+    wx.setStorage({
+      key: 'last_input_words',
+      data: inputWords
+    });
   },
 
   // 加载单词列表
@@ -91,6 +113,9 @@ Page({
         inputWords: limitedText,
         wordCount: 100
       });
+      
+      // 保存到本地缓存
+      this.saveInputWordsToStorage(limitedText);
       return;
     }
     
@@ -98,6 +123,9 @@ Page({
       inputWords: inputText,
       wordCount: wordCount
     });
+    
+    // 保存到本地缓存
+    this.saveInputWordsToStorage(inputText);
   },
 
   // 清空输入框
@@ -114,6 +142,9 @@ Page({
             inputWords: '',
             wordCount: 0
           });
+          
+          // 同时清空本地缓存
+          this.saveInputWordsToStorage('');
           
           wx.showToast({
             title: '已清空',
@@ -272,49 +303,144 @@ Page({
 
   // 拍照识别单词
   scanWords: function () {
+    wx.showLoading({
+      title: '处理中...',
+    });
+    
     wx.chooseMedia({
       count: 1,
       mediaType: ['image'],
       sourceType: ['camera', 'album'],
-      success: res => {
-        const tempFilePath = res.tempFiles[0].tempFilePath;
-        
-        wx.showLoading({
-          title: '识别中...',
-        });
-        
-        // 调用云函数进行 OCR 识别
-        wx.cloud.callFunction({
-          name: 'ocrWords',
-          data: {
-            fileID: tempFilePath
+      success: async res => {
+        try {
+          const tempFilePath = res.tempFiles[0].tempFilePath;
+          
+          // 1. 上传图片到云存储
+          const cloudPath = `ocr_images/${Date.now()}-${Math.random().toString(36).substr(2)}.png`;
+          
+          wx.showLoading({
+            title: '上传图片中...',
+          });
+          
+          const uploadRes = await wx.cloud.uploadFile({
+            cloudPath: cloudPath,
+            filePath: tempFilePath
+          });
+          
+          if (!uploadRes.fileID) {
+            throw new Error('上传失败');
           }
-        }).then(res => {
+          
+          // 2. 获取云存储图片临时链接
+          wx.showLoading({
+            title: '获取图片链接...',
+          });
+          
+          const fileRes = await wx.cloud.getTempFileURL({
+            fileList: [uploadRes.fileID]
+          });
+          
+          if (!fileRes.fileList || !fileRes.fileList[0].tempFileURL) {
+            throw new Error('获取图片链接失败');
+          }
+          
+          const imageUrl = fileRes.fileList[0].tempFileURL;
+          console.log('图片临时链接:', imageUrl);
+          
+          // 保存图片 URL 到当前听写记录
+          app.globalData.currentImageUrl = imageUrl;
+          
+          // 3. 调用OCR识别接口
+          wx.showLoading({
+            title: '识别文字中...',
+          });
+          
+          const ocrRes = await wx.cloud.callContainer({
+            "config": {
+              "env": "prod-5g5ywun6829a4db5"
+            },
+            "path": "/txapi/ocr/handwriting",
+            "header": {
+              "X-WX-SERVICE": "word-dictation",
+              "content-type": "application/json",
+              "Authorization": `Bearer ${app.globalData.token}`
+            },
+            "method": "POST",
+            "data": {
+              "ImageUrl": imageUrl
+            }
+          });
+          
           wx.hideLoading();
           
-          if (res.result && res.result.words) {
-            // 将识别结果填入输入框
-            this.setData({
-              inputWords: res.result.words.join('\n')
+          // 根据新的数据格式处理OCR结果
+          if (ocrRes.data && 
+              ocrRes.data.code === 0 && 
+              ocrRes.data.data && 
+              ocrRes.data.data.TextDetections) {
+            
+            // 提取所有文本检测结果
+            const detections = ocrRes.data.data.TextDetections;
+            
+            // 过滤掉"结果:"、"广告:"、"下载>"等无关文本
+            const filteredDetections = detections.filter(item => {
+              const text = item.DetectedText.toLowerCase();
+              return !text.includes('结果:') && 
+                     !text.includes('广告:') && 
+                     !text.includes('下载>');
             });
             
-            wx.showToast({
-              title: '识别成功'
+            // 处理每一行文本，提取单词
+            let allWords = [];
+            
+            filteredDetections.forEach(item => {
+              // 分割每行文本中的单词（按逗号分隔）
+              const lineWords = item.DetectedText
+                .split(/[,，、]/)
+                .map(word => word.trim())
+                .filter(word => word && word.length > 0);
+              
+              allWords = allWords.concat(lineWords);
             });
+            
+            // 移除重复单词
+            const uniqueWords = [...new Set(allWords)];
+            
+            if (uniqueWords.length > 0) {
+              // 将单词列表设置到输入框
+              this.setData({
+                inputWords: uniqueWords.join('\n')
+              });
+              
+              wx.showToast({
+                title: `识别到${uniqueWords.length}个单词`,
+                icon: 'success'
+              });
+            } else {
+              wx.showToast({
+                title: '未识别到有效单词',
+                icon: 'none'
+              });
+            }
           } else {
+            console.error('OCR响应异常:', ocrRes);
             wx.showToast({
-              title: '未识别到单词',
+              title: '识别失败: 服务响应异常',
               icon: 'none'
             });
           }
-        }).catch(err => {
+        } catch (err) {
           wx.hideLoading();
-          console.error('OCR 识别失败：', err);
+          console.error('OCR识别失败:', err);
           wx.showToast({
-            title: '识别失败',
+            title: '识别失败: ' + err.message,
             icon: 'none'
           });
-        });
+        }
+      },
+      fail: err => {
+        wx.hideLoading();
+        console.log('选择图片失败:', err);
       }
     });
   },
@@ -342,6 +468,11 @@ Page({
       return;
     }
     
+    wx.showLoading({
+      title: '正在准备语音...',
+      mask: true
+    });
+    
     // 处理单词格式，支持英文-中文格式
     const formattedWords = wordArray.map(item => {
       const parts = item.split(/[-—_:：]+/).map(part => part.trim());
@@ -357,117 +488,224 @@ Page({
       };
     });
     
-    // 保存到全局变量
-    app.globalData.currentDictationWords = formattedWords;
-    app.globalData.currentDictationTitle = '临时单词列表';
-    
-    // 跳转到听写页面
-    wx.navigateTo({
-      url: '/pages/dictation/index'
-    });
-  },
-
-  // 编辑单词列表
-  editWordList: function (e) {
-    const id = e.currentTarget.dataset.id;
-    const wordList = this.data.wordLists.find(item => item.id === id);
-    
-    if (!wordList) {
-      wx.showToast({
-        title: '未找到单词列表',
-        icon: 'none'
-      });
-      return;
-    }
-    
-    // 跳转到单词列表编辑页面
-    wx.navigateTo({
-      url: `/pages/wordList/index?id=${id}`
-    });
-  },
-
-  // 使用现有单词列表开始听写
-  startWordListDictation: function (e) {
-    const id = e.currentTarget.dataset.id;
-    const wordList = this.data.wordLists.find(item => item.id === id);
-    
-    if (!wordList) {
-      wx.showToast({
-        title: '未找到单词列表',
-        icon: 'none'
-      });
-      return;
-    }
-    
-    if (wordList.words.length === 0) {
-      wx.showToast({
-        title: '单词列表为空',
-        icon: 'none'
-      });
-      return;
-    }
-    
-    // 将单词数组存入全局变量，以便听写页面使用
-    app.globalData.currentDictationWords = wordList.words;
-    app.globalData.currentDictationTitle = wordList.title;
-    
-    // 跳转到听写页面
-    wx.navigateTo({
-      url: '/pages/dictation/index'
-    });
-  },
-
-  // 删除单词列表
-  deleteWordList: function (e) {
-    const id = e.currentTarget.dataset.id;
-    
-    wx.showModal({
-      title: '确认删除',
-      content: '确定要删除这个单词列表吗？',
-      success: res => {
-        if (res.confirm) {
-          // 从云数据库删除
-          if (app.globalData.userInfo) {
-            const db = wx.cloud.database();
-            db.collection('wordLists').where({
-              _openid: app.globalData.userInfo.openId,
-              id: id
-            }).remove().then(res => {
-              // 更新本地数据
-              const updatedWordLists = this.data.wordLists.filter(item => item.id !== id);
-              this.setData({
-                wordLists: updatedWordLists
-              });
-              
-              // 更新全局数据
-              app.globalData.wordLists = updatedWordLists;
-              
-              wx.showToast({
-                title: '删除成功'
-              });
-            }).catch(err => {
-              console.error('删除单词列表失败：', err);
-              wx.showToast({
-                title: '删除失败',
-                icon: 'none'
-              });
-            });
-          } else {
-            // 如果用户未登录，只在本地删除
-            const updatedWordLists = this.data.wordLists.filter(item => item.id !== id);
-            this.setData({
-              wordLists: updatedWordLists
-            });
-            
-            // 更新全局数据
-            app.globalData.wordLists = updatedWordLists;
-            
-            wx.showToast({
-              title: '删除成功'
-            });
-          }
+    // 生成语音，然后开始听写
+    this.generateWordVoices(formattedWords)
+      .then(wordsWithVoices => {
+        // 检查是否所有单词都有语音URL
+        const missingVoiceWords = wordsWithVoices.filter(item => !item.voiceUrl);
+        
+        if (missingVoiceWords.length > 0) {
+          // 如果有单词缺少语音，显示警告但仍然继续
+          console.warn('部分单词没有生成语音:', missingVoiceWords.map(item => item.word));
+          wx.showToast({
+            title: `${missingVoiceWords.length}个单词未能生成语音`,
+            icon: 'none',
+            duration: 2000
+          });
         }
+        
+        // 保存到全局变量
+        app.globalData.currentDictationWords = wordsWithVoices;
+        app.globalData.currentDictationTitle = '临时单词列表';
+        
+        wx.hideLoading();
+        
+        // 跳转到听写页面
+        wx.navigateTo({
+          url: '/pages/dictation/index'
+        });
+      })
+      .catch(error => {
+        wx.hideLoading();
+        console.error('语音合成失败:', error);
+        
+        // 显示更友好的错误信息
+        wx.showModal({
+          title: '语音合成失败',
+          content: '无法生成语音，请检查网络连接或稍后再试。\n错误信息: ' + error.message,
+          showCancel: false
+        });
+      });
+  },
+  
+  // 判断文本是否为英文
+  isEnglish: function(text) {
+    // 使用正则表达式判断是否为英文字符（只包含英文字母、数字、标点和空格）
+    return /^[A-Za-z0-9\s\.,'\-?!]+$/.test(text);
+  },
+  
+  // 生成单词语音
+  generateWordVoices: async function(words) {
+    if (!words || words.length === 0) return words;
+    
+    // 将单词分为英文和中文两组
+    const englishWords = [];
+    const chineseWords = [];
+    
+    words.forEach(item => {
+      const isEnglish = this.isEnglish(item.word);
+      
+      // 所有单词都添加到待生成列表，不检查缓存
+      if (isEnglish) {
+        englishWords.push(item);
+      } else {
+        chineseWords.push(item);
       }
     });
-  }
+    
+    // 批量生成英文单词语音
+    if (englishWords.length > 0) {
+      await this.batchGenerateVoices(englishWords, true);
+    }
+    
+    // 批量生成中文单词语音
+    if (chineseWords.length > 0) {
+      await this.batchGenerateVoices(chineseWords, false);
+    }
+    
+    return words;
+  },
+  
+  // 批量生成语音
+  batchGenerateVoices: async function(wordItems, isEnglish) {
+    // 每批处理的单词数量
+    const batchSize = 10;
+    
+    // 将单词分批处理
+    for (let i = 0; i < wordItems.length; i += batchSize) {
+      const batch = wordItems.slice(i, i + batchSize);
+      
+      // 并发处理当前批次的所有单词
+      const promises = batch.map(item => this.generateSingleVoice(item, isEnglish));
+      
+      // 等待当前批次的所有请求完成
+      await Promise.all(promises);
+    }
+  },
+  
+  // 生成单个单词的语音
+  generateSingleVoice: async function(wordItem, isEnglish) {
+    try {
+      const response = await wx.cloud.callContainer({
+        "config": {
+          "env": "prod-5g5ywun6829a4db5"
+        },
+        "path": "/txapi/tts/text2voice",
+        "header": {
+          "X-WX-SERVICE": "word-dictation",
+          "content-type": "application/json",
+          "Authorization": `Bearer ${app.globalData.token}`
+        },
+        "method": "POST",
+        "data": {
+          "Text": wordItem.word,
+          "SessionId": `session-${Date.now()}`, // 使用时间戳确保每次请求唯一
+          "Volume": 1,
+          "Speed": 1, // 稍微放慢速度，便于听写
+          "ProjectId": 0,
+          "ModelType": 1,
+          "VoiceType": isEnglish ? 101051 : 301004, // 英文用501009，中文用501001
+          "PrimaryLanguage": isEnglish ? 2 : 1,     // 英文用2，中文用1
+          "SampleRate": 16000,
+          "Codec": "mp3",
+          "EmotionCategory": isEnglish ? "neutral" : "radio",
+          "EmotionIntensity": 100
+        }
+      });
+      
+      // 检查响应
+      if (response.statusCode === 200 && response.data.code === 0 && response.data.data.Audio) {
+        // 获取音频Base64数据
+        const audioBase64 = response.data.data.Audio;
+        
+        // 将Base64转换为临时文件，使用时间戳确保文件名唯一
+        const filePath = await this.base64ToTempFile(audioBase64, `audio_${Date.now()}.mp3`);
+        
+        // 将语音URL保存到单词对象中，但不保存到缓存
+        wordItem.voiceUrl = filePath;
+        
+        return filePath;
+      } else {
+        console.error('语音合成接口返回错误:', response);
+        
+        // 输出详细的错误信息，便于调试
+        if (response.data) {
+          console.error('响应数据:', JSON.stringify(response.data));
+        }
+        
+        throw new Error('语音合成失败: ' + (response.data?.msg || '未知错误'));
+      }
+    } catch (error) {
+      console.error(`生成单词 "${wordItem.word}" 的语音失败:`, error);
+      // 出错时不中断整个流程，返回null表示没有语音
+      wordItem.voiceUrl = null;
+      return null;
+    }
+  },
+  
+  // 将Base64转换为临时文件
+  base64ToTempFile: function(base64Data, fileName) {
+    return new Promise((resolve, reject) => {
+      // 处理文件名，去除中文和特殊字符
+      const safeFileName = this.getSafeFileName(fileName);
+      
+      const filePath = `${wx.env.USER_DATA_PATH}/${safeFileName}`;
+      const buffer = wx.base64ToArrayBuffer(base64Data);
+      
+      wx.getFileSystemManager().writeFile({
+        filePath: filePath,
+        data: buffer,
+        encoding: 'binary',
+        success: () => {
+          resolve(filePath);
+        },
+        fail: (error) => {
+          console.error('写入文件失败:', error);
+          reject(error);
+        }
+      });
+    });
+  },
+  
+  // 生成安全的文件名（不含中文和特殊字符）
+  getSafeFileName: function(originalName) {
+    // 提取原文件名的扩展名
+    const ext = originalName.split('.').pop();
+    
+    // 生成随机字符串作为文件名
+    const randomName = `audio_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
+    
+    // 返回安全的文件名
+    return `${randomName}.${ext}`;
+  },
+
+  generateVoice: function() {
+    wx.cloud.callContainer({
+      "config": {
+        "env": "prod-5g5ywun6829a4db5"
+      },
+      "path": "/txapi/tts/text2voice",
+      "header": {
+        "X-WX-SERVICE": "word-dictation",
+        "content-type": "application/json",
+        "Authorization": `Bearer ${app.globalData.token}`
+      },
+      "method": "POST",
+      "data": {
+        "Text": "盛大",
+        "Volume": 1,
+        "Speed": 1,
+        "ProjectId": 0,
+        "ModelType": 1,
+        "VoiceType": 101008,
+        "PrimaryLanguage": 1,
+        "SampleRate": 16000,
+        "Codec": "wav",
+        "SegmentRate": 0,
+        "EmotionCategory": "neutral",
+        "EmotionIntensity": 100
+      }
+    })
+  },
+
 }) 

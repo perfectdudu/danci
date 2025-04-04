@@ -12,26 +12,39 @@ Page({
     endTime: null, // 结束时间
     title: '', // 单词列表标题
     isPlaying: false, // 添加播放状态
-    initialPlay: true // 初始加载状态
+    initialPlay: true, // 初始加载状态
+    playCount: 0, // 播放次数计数
+    playTimer: null, // 播放定时器
+    answers: {},  // 初始化答案对象
+    isPlayingCompletionAudio: false, // 标记是否正在播放完成提示音
+    completionPlayCount: 0 // 完成提示音播放次数计数
   },
 
   onLoad: function (options) {
+    // 初始化播放相关参数
+    this.playCount = 1;
+    this.playTimer = null;
+    this.initialPlay = true; // 标记为初始加载
+    
     // 从全局变量获取单词列表
     const wordList = app.globalData.currentDictationWords || [];
     const title = app.globalData.currentDictationTitle || '临时单词列表';
     
+    // 检查是否存在完成提示音，没有则生成
+    this.checkCompletionAudio();
+    
     if (wordList.length === 0) {
       // 使用模拟数据
       const mockWords = [
-        'book',
-        'ruler',
-        'pencil',
-        'dog',
-        'bird',
-        'eight',
-        'nine',
-        'banana',
-        'orange'
+        { word: 'book', voiceUrl: null },
+        { word: 'ruler', voiceUrl: null },
+        { word: 'pencil', voiceUrl: null },
+        { word: 'dog', voiceUrl: null },
+        { word: 'bird', voiceUrl: null },
+        { word: 'eight', voiceUrl: null },
+        { word: 'nine', voiceUrl: null },
+        { word: 'banana', voiceUrl: null },
+        { word: 'orange', voiceUrl: null }
       ];
       
       // 随机排序单词
@@ -43,11 +56,15 @@ Page({
         currentWord: shuffledWords[0],
         title: '英语基础词汇',
         startTime: new Date(), // 记录开始时间
-        isPlaying: true // 默认设置为播放状态，显示暂停按钮
+        isPlaying: true, // 默认设置为播放状态，显示暂停按钮
+        playCount: 1 // 确保播放次数UI显示为1
       });
       
-      // 自动播放第一个单词
+      console.log('准备自动播放第一个单词');
+      
+      // 自动播放第一个单词 - 使用500ms延迟确保页面渲染完成
       setTimeout(() => {
+        console.log('触发自动播放');
         this.playWord();
       }, 500);
       
@@ -63,25 +80,44 @@ Page({
       currentWord: shuffledWords[0],
       title: title,
       startTime: new Date(), // 记录开始时间
-      isPlaying: true // 默认设置为播放状态，显示暂停按钮
+      isPlaying: true, // 默认设置为播放状态，显示暂停按钮
+      playCount: 1 // 确保播放次数UI显示为1
     });
     
-    // 自动播放第一个单词
+    console.log('准备自动播放第一个单词');
+    
+    // 确保页面准备就绪后播放音频（使用更长的延迟时间确保稳定性）
     setTimeout(() => {
+      console.log('触发自动播放');
       this.playWord();
     }, 500);
   },
 
+  // 页面显示时触发
+  onShow: function() {
+    console.log('页面显示，检查是否需要播放');
+    
+    // 如果页面重新显示且是播放状态，则恢复播放
+    if (this.data.isPlaying && this.data.currentWord && this.data.currentWord.voiceUrl) {
+      // 短暂延迟确保音频上下文已准备好
+      setTimeout(() => {
+        this.playWordWithVoiceUrl(this.data.currentWord.voiceUrl);
+      }, 300);
+    }
+  },
+
   // 播放当前单词
-  playWord: function () {
+  playWord: function() {
     const { currentWord, isPlaying } = this.data;
     
     // 如果是初始加载，不需要切换状态
     if (this.initialPlay) {
+      console.log('初始加载，开始播放');
       this.initialPlay = false;
     } else if (isPlaying) {
       // 如果正在播放，则暂停
-      this.innerAudioContext && this.innerAudioContext.stop();
+      console.log('已在播放状态，切换到暂停');
+      this.stopAudioPlay();
       this.setData({ isPlaying: false });
       return;
     }
@@ -89,35 +125,267 @@ Page({
     // 设置播放状态
     this.setData({ isPlaying: true });
     
-    // 创建音频上下文
-    if (!this.innerAudioContext) {
-      this.innerAudioContext = wx.createInnerAudioContext();
-      this.innerAudioContext.onEnded(() => {
-        // 播放结束后不改变按钮状态，保持暂停图标
-        // this.setData({ isPlaying: false });
-      });
-      this.innerAudioContext.onError(() => {
-        wx.showToast({
-          title: '播放失败',
-          icon: 'none'
-        });
-        // 播放失败也保持暂停图标
-        // this.setData({ isPlaying: false });
-      });
+    if (!currentWord) {
+      console.error('没有当前单词数据');
+      this.setData({ isPlaying: false });
+      return;
     }
     
-    // 获取发音设置
-    const playSettings = app.globalData.playSettings || {};
-    const accent = playSettings.accent || 'us'; // 默认美式发音
+    console.log('播放单词:', currentWord.word);
     
-    // 构建语音URL
-    const word = currentWord.word || '';
-    const url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(word)}&type=${accent === 'us' ? 0 : 1}`;
+    // 根据词汇是否有预生成的语音URL决定播放方式
+    if (currentWord.voiceUrl) {
+      // 使用预生成的语音URL播放
+      this.playWordWithVoiceUrl(currentWord.voiceUrl);
+    } else {
+      console.error('单词没有预生成的语音URL:', currentWord.word);
+      wx.showToast({
+        title: '该单词没有音频',
+        icon: 'none',
+        duration: 2000
+      });
+      
+      // 延迟2秒后尝试播放下一个单词
+      setTimeout(() => {
+        this.autoPlayNext();
+      }, 2000);
+    }
+  },
+  
+  // 停止音频播放
+  stopAudioPlay: function() {
+    console.log('停止音频播放');
     
-    this.innerAudioContext.src = url;
-    this.innerAudioContext.play();
+    // 清除定时器
+    if (this.playTimer) {
+      clearTimeout(this.playTimer);
+      this.playTimer = null;
+    }
     
-    // 移除震动反馈
+    // 停止音频播放
+    if (this.innerAudioContext) {
+      // 移除事件监听
+      this.innerAudioContext.offEnded();
+      this.innerAudioContext.offError();
+      // 停止播放
+      this.innerAudioContext.stop();
+    }
+    
+    // 重置播放次数
+    this.playCount = 1;
+    this.setData({
+      playCount: 1
+    });
+  },
+  
+  // 使用合成的语音URL播放单词
+  playWordWithVoiceUrl: function(voiceUrl) {
+    // 重置播放次数计数，默认从1开始
+    this.playCount = 1;
+    
+    // 更新UI显示的播放次数
+    this.setData({
+      playCount: 1  // 默认从1开始，即第一个点高亮
+    });
+    
+    // 创建或重用音频上下文
+    if (!this.innerAudioContext) {
+      this.innerAudioContext = wx.createInnerAudioContext();
+    }
+    
+    console.log('准备播放音频:', voiceUrl);
+    
+    try {
+      // 检查文件是否存在
+      const fs = wx.getFileSystemManager();
+      fs.access({
+        path: voiceUrl,
+        success: () => {
+          console.log('音频文件存在:', voiceUrl);
+          
+          // 移除之前的所有事件监听，避免重复绑定导致多次触发
+          this.innerAudioContext.offEnded();
+          this.innerAudioContext.offError();
+          
+          // 设置音频源
+          this.innerAudioContext.src = voiceUrl;
+          
+          // 创建播放函数，用于递归播放
+          const playNextRepetition = () => {
+            // 已播放一次，增加计数
+            this.playCount++;
+            console.log(`播放次数: ${this.playCount-1}/3 完成`);
+            
+            // 更新UI显示的播放次数
+            this.setData({
+              playCount: this.playCount
+            });
+            
+            // 如果播放次数小于等于3，则立即再次播放同一个单词（不停顿）
+            if (this.playCount <= 3) {
+              console.log(`立即开始播放第${this.playCount}次`);
+              // 立即重新播放，不需要延迟
+              this.innerAudioContext.play();
+            } else {
+              // 播放完3次后重置计数 UI 不重置
+              console.log('已完成3次播放，准备播放下一个单词');
+              
+              // 在1秒后自动播放下一个单词
+              console.log('等待1秒后播放下一个单词');
+              this.playTimer = setTimeout(() => {
+                if (this.data.isPlaying) { // 确保用户没有暂停
+                  // 移动到下一个单词前重置播放次数 UI
+                  this.playCount = 1;
+                  this.setData({
+                    playCount: 1  // 默认从1开始
+                  });
+                  console.log('开始播放下一个单词');
+                  this.autoPlayNext();
+                }
+              }, 1000);
+            }
+          };
+          
+          // 设置播放结束事件处理
+          this.innerAudioContext.onEnded(playNextRepetition);
+          
+          this.innerAudioContext.onError((err) => {
+            console.error('播放语音失败:', err);
+            wx.showToast({
+              title: '播放失败',
+              icon: 'none'
+            });
+            // 出错时重置播放状态
+            this.playCount = 1;
+            this.setData({ 
+              isPlaying: false,
+              playCount: 1
+            });
+            
+            // 尝试播放下一个单词
+            setTimeout(() => {
+              this.autoPlayNext();
+            }, 2000);
+          });
+          
+          // 开始播放
+          this.innerAudioContext.play();
+        },
+        fail: (err) => {
+          console.error('音频文件不存在:', err);
+          wx.showToast({
+            title: '音频文件不存在',
+            icon: 'none'
+          });
+          
+          // 出错时重置播放状态
+          this.playCount = 1;
+          this.setData({ 
+            isPlaying: false,
+            playCount: 1
+          });
+          
+          // 尝试播放下一个单词
+          setTimeout(() => {
+            this.autoPlayNext();
+          }, 2000);
+        }
+      });
+    } catch (error) {
+      console.error('播放异常:', error);
+      wx.showToast({
+        title: '播放出错: ' + error.message,
+        icon: 'none'
+      });
+      
+      // 出错时重置播放状态
+      this.playCount = 1;
+      this.setData({ 
+        isPlaying: false,
+        playCount: 1
+      });
+      
+      // 尝试播放下一个单词
+      setTimeout(() => {
+        this.autoPlayNext();
+      }, 2000);
+    }
+  },
+
+  // 自动播放下一个单词
+  autoPlayNext: function() {
+    console.log('尝试自动播放下一个单词');
+    
+    // 确保用户未暂停播放
+    if (!this.data.isPlaying) {
+      console.log('用户已暂停播放，不执行自动播放');
+      return;
+    }
+    
+    // 获取当前正在播放的单词索引
+    const currentIndex = this.data.currentIndex;
+    const words = this.data.wordList || [];
+    
+    // 检查是否还有下一个单词
+    if (currentIndex + 1 < words.length) {
+      // 切换到下一个单词
+      this.setData({
+        currentIndex: currentIndex + 1,
+        currentWord: words[currentIndex + 1]
+      });
+      
+      // 获取下一个单词的音频URL
+      const nextWord = words[currentIndex + 1];
+      if (nextWord && nextWord.voiceUrl) {
+        console.log('自动播放下一个单词:', nextWord.word);
+        this.playWordWithVoiceUrl(nextWord.voiceUrl);
+      } else {
+        console.error('下一个单词没有音频URL:', nextWord);
+        wx.showToast({
+          title: '该单词没有音频',
+          icon: 'none'
+        });
+        
+        // 如果还有更多单词，尝试再下一个
+        if (currentIndex + 2 < words.length) {
+          setTimeout(() => {
+            this.setData({
+              currentIndex: currentIndex + 2,
+              currentWord: words[currentIndex + 2]
+            });
+            this.autoPlayNext();
+          }, 1000);
+        } else {
+          // 已经到达最后一个单词
+          this.setData({
+            isPlaying: false
+          });
+          wx.showToast({
+            title: '所有单词已播放完',
+            icon: 'success'
+          });
+          
+          // 延迟后完成听写
+          setTimeout(() => {
+            this.finishDictation();
+          }, 2000);
+        }
+      }
+    } else {
+      // 已经是最后一个单词
+      this.setData({
+        isPlaying: false
+      });
+      wx.showToast({
+        title: '所有单词已播放完',
+        icon: 'success'
+      });
+      
+      // 延迟后完成听写
+      setTimeout(() => {
+        this.finishDictation();
+      }, 2000);
+    }
   },
 
   // 上一个单词
@@ -134,9 +402,7 @@ Page({
     }
     
     // 停止当前播放
-    if (this.innerAudioContext) {
-      this.innerAudioContext.stop();
-    }
+    this.stopAudioPlay();
     
     // 切换到上一个单词
     const prevIndex = currentIndex - 1;
@@ -164,9 +430,7 @@ Page({
     }
     
     // 停止当前播放
-    if (this.innerAudioContext) {
-      this.innerAudioContext.stop();
-    }
+    this.stopAudioPlay();
     
     // 继续下一个单词
     const nextIndex = currentIndex + 1;
@@ -178,54 +442,6 @@ Page({
     
     // 立即播放下一个单词，不需要延迟
     this.playWord();
-  },
-
-  // 使用本地TTS播放单词
-  useLocalTTS: function (word) {
-    const textToSpeech = requirePlugin('tts');
-    textToSpeech.textToSpeech({
-      lang: 'en_US',
-      content: word,
-      success: function (res) {
-        console.log('TTS调用成功', res);
-      },
-      fail: function (res) {
-        console.error('TTS调用失败', res);
-        wx.showToast({
-          title: '播放失败',
-          icon: 'none'
-        });
-      }
-    });
-  },
-
-  // 慢速播放当前单词
-  playSlowly: function () {
-    const word = this.data.currentWord;
-    if (!word) return;
-    
-    // 调用云函数获取慢速发音
-    wx.cloud.callFunction({
-      name: 'getWordAudio',
-      data: {
-        word: word,
-        type: app.globalData.pronunciationSettings.type,
-        speed: 0.6 // 慢速
-      }
-    }).then(res => {
-      if (res.result && res.result.audioUrl) {
-        // 播放音频
-        const innerAudioContext = wx.createInnerAudioContext();
-        innerAudioContext.src = res.result.audioUrl;
-        innerAudioContext.play();
-      } else {
-        // 使用本地TTS，但无法控制速度
-        this.useLocalTTS(word);
-      }
-    }).catch(err => {
-      console.error('获取单词慢速发音失败：', err);
-      this.useLocalTTS(word);
-    });
   },
 
   // 处理输入变化
@@ -290,130 +506,285 @@ Page({
     });
   },
 
-  // 完成听写，计算结果
-  finishDictation: function () {
-    const { dictationResults, currentWord, currentInput, title } = this.data;
+  // 完成听写
+  finishDictation: function() {
+    console.log('完成听写');
     
-    // 处理当前词
-    if (currentWord && dictationResults.length < this.data.totalWords) {
-      const isCorrect = currentInput.trim().toLowerCase() === currentWord.toLowerCase();
-      
-      dictationResults.push({
-        word: currentWord,
-        userAnswer: currentInput.trim(),
-        correct: isCorrect,
-        phonetic: ''
-      });
-    }
+    // 停止音频播放
+    this.stopAudioPlay();
     
-    // 记录结束时间
-    this.setData({
-      endTime: new Date(),
-      dictationResults
+    // 获取用户输入的答案
+    const userAnswers = {};
+    const wordList = this.data.wordList || [];
+    
+    // 遍历所有单词，收集用户的答案
+    wordList.forEach((item, index) => {
+      const inputValue = this.data.answers[index] || '';
+      userAnswers[item.word] = {
+        word: item.word,
+        userInput: inputValue,
+        correct: this.isAnswerCorrect(item.word, inputValue)
+      };
     });
     
-    // 计算统计数据
-    const correctCount = dictationResults.filter(item => item.correct).length;
-    const totalCount = dictationResults.length;
-    const wrongCount = totalCount - correctCount;
-    const accuracy = Math.round((correctCount / totalCount) * 100);
+    // 提示用户听写已完成
+    wx.showToast({
+      title: '听写已完成',
+      icon: 'success'
+    });
     
-    // 计算用时（分钟）
-    const timeSpent = Math.round((this.data.endTime - this.data.startTime) / 1000 / 60);
-    
-    // 创建听写记录
-    const dictationRecord = {
-      id: Date.now().toString(),
-      title: title,
-      correctCount,
-      wrongCount,
-      totalCount,
-      accuracy,
-      timeSpent,
-      createTime: new Date(),
-      words: dictationResults
+    // 准备要保存的记录数据
+    const recordData = {
+      title: this.data.dictationTitle || '未命名听写',
+      date: new Date().getTime(),
+      words: wordList.map((item, index) => {
+        return {
+          word: item.word,
+          userInput: this.data.answers[index] || '',
+          correct: this.isAnswerCorrect(item.word, this.data.answers[index] || '')
+        };
+      }),
+      totalWords: wordList.length,
+      correctCount: Object.values(userAnswers).filter(item => item.correct).length,
     };
     
-    // 保存全局结果，以便结果页面使用
-    app.globalData.currentDictationResult = dictationRecord;
+    console.log('准备保存听写记录:', recordData);
     
-    // 如果用户已登录，则保存到云数据库
-    if (app.globalData.userInfo) {
-      const db = wx.cloud.database();
-      db.collection('dictationRecords').add({
-        data: dictationRecord
-      }).then(res => {
-        console.log('听写记录保存成功', res);
-      }).catch(err => {
-        console.error('保存听写记录失败：', err);
-      });
-    }
-    
-    // 如果开启了自动收集错题功能，则将错词添加到错题本
-    if (app.globalData.otherSettings.collectMistakes) {
-      const wrongWords = dictationResults.filter(item => !item.correct);
+    // 保存听写记录到本地存储
+    try {
+      // 获取现有记录
+      const records = wx.getStorageSync('dictationRecords') || [];
       
-      if (wrongWords.length > 0 && app.globalData.userInfo) {
-        const db = wx.cloud.database();
-        db.collection('mistakeWords').where({
-          _openid: app.globalData.userInfo.openId
-        }).get().then(res => {
-          let mistakeWords = res.data.length > 0 ? res.data[0].words || [] : [];
-          
-          // 添加新的错词
-          wrongWords.forEach(wrong => {
-            const exists = mistakeWords.some(item => item.word === wrong.word);
-            if (!exists) {
-              mistakeWords.push({
-                word: wrong.word,
-                userAnswer: wrong.userAnswer,
-                phonetic: wrong.phonetic,
-                addTime: new Date()
-              });
-            }
-          });
-          
-          // 更新或创建错题本
-          if (res.data.length > 0) {
-            db.collection('mistakeWords').doc(res.data[0]._id).update({
-              data: {
-                words: mistakeWords,
-                updateTime: new Date()
-              }
-            });
-          } else {
-            db.collection('mistakeWords').add({
-              data: {
-                words: mistakeWords,
-                createTime: new Date()
-              }
-            });
+      // 添加新记录并生成唯一标识
+      recordData.serial = Date.now().toString();
+      records.unshift(recordData);
+      
+      // 保存回本地存储
+      wx.setStorageSync('dictationRecords', records);
+      
+      console.log('听写记录已保存');
+      
+      // 清理临时音频文件
+      this.cleanupTempAudioFiles();
+      
+      // 如果已经在播放提示音，则不再重复播放
+      if (this.isPlayingCompletionAudio) {
+        console.log('提示音正在播放中，不重复播放');
+        return;
+      }
+      
+      // 标记正在播放提示音
+      this.isPlayingCompletionAudio = true;
+      
+      // 播放完成提示音
+      this.playCompletionAudio(() => {
+        // 播放完成后重置标记
+        this.isPlayingCompletionAudio = false;
+        
+        // 跳转到核对页面
+        wx.navigateTo({
+          url: `/pages/dictation-complete/index?serial=${recordData.serial}`,
+          success: () => {
+            console.log('成功跳转到核对听写页面');
+          },
+          fail: (err) => {
+            console.error('跳转失败:', err);
           }
         });
-      }
+      });
+    } catch (error) {
+      console.error('保存听写记录失败:', error);
+      wx.showModal({
+        title: '错误',
+        content: '保存听写记录失败，请重试',
+        showCancel: false
+      });
+    }
+  },
+
+  // 播放完成提示音
+  playCompletionAudio: function(callback) {
+    console.log('准备播放完成提示音');
+    
+    if (!this.completionAudioPath) {
+      console.error('完成提示音未生成');
+      if (callback) callback();
+      return;
     }
     
-    // 跳转到结果页面
-    wx.redirectTo({
-      url: '/pages/result/index'
+    // 重置播放计数
+    this.completionPlayCount = 0;
+    
+    // 创建新的音频上下文（与单词播放分开）
+    const completionAudio = wx.createInnerAudioContext();
+    completionAudio.src = this.completionAudioPath;
+    
+    // 播放函数
+    const playCompletionRepetition = () => {
+      this.completionPlayCount++;
+      console.log(`完成提示音播放次数: ${this.completionPlayCount}/3`);
+      
+      if (this.completionPlayCount < 3) {
+        // 还未播放3次，继续播放
+        completionAudio.play();
+      } else {
+        console.log('完成提示音播放3次完毕');
+        // 确保销毁音频实例，避免重复播放
+        completionAudio.destroy();
+        if (callback) callback();
+      }
+    };
+    
+    // 监听播放结束事件
+    completionAudio.onEnded(playCompletionRepetition);
+    
+    // 监听错误事件
+    completionAudio.onError((err) => {
+      console.error('完成提示音播放出错:', err);
+      completionAudio.destroy();
+      if (callback) callback();
+    });
+    
+    // 确保音频准备好后再播放第一次
+    completionAudio.onCanplay(() => {
+      // 开始播放
+      completionAudio.play();
     });
   },
 
   // 确认退出听写
   confirmExit: function () {
     wx.showModal({
-      title: '确认返回',
-      content: '确定要返回上一页吗？当前的听写进度将丢失，无法恢复。',
-      confirmText: '确认返回',
+      title: '确认结束',
+      content: '确定要结束当前听写吗？',
+      confirmText: '确认结束',
       cancelText: '继续听写',
       confirmColor: '#4CAF50',
       success: res => {
         if (res.confirm) {
           // 停止当前播放
-          if (this.innerAudioContext) {
-            this.innerAudioContext.stop();
+          this.stopAudioPlay();
+          
+          // 获取用户输入的答案
+          const userAnswers = {};
+          const wordList = this.data.wordList || [];
+          
+          // 遍历所有单词，收集用户的答案
+          wordList.forEach((item, index) => {
+            const inputValue = this.data.answers[index] || '';
+            userAnswers[item.word] = {
+              word: item.word,
+              userInput: inputValue,
+              correct: this.isAnswerCorrect(item.word, inputValue)
+            };
+          });
+          
+          // 准备要保存的记录数据
+          const recordData = {
+            title: this.data.title || '未命名听写',
+            date: new Date().getTime(),
+            words: wordList.map((item, index) => {
+              return {
+                word: item.word,
+                userInput: this.data.answers[index] || '',
+                correct: this.isAnswerCorrect(item.word, this.data.answers[index] || '')
+              };
+            }),
+            totalWords: wordList.length,
+            correctCount: Object.values(userAnswers).filter(item => item.correct).length,
+          };
+          
+          // 添加新记录并生成唯一标识
+          recordData.serial = Date.now().toString();
+          
+          // 保存记录到本地存储
+          try {
+            const records = wx.getStorageSync('dictationRecords') || [];
+            records.unshift(recordData);
+            wx.setStorageSync('dictationRecords', records);
+            
+            // 清理临时音频文件
+            this.cleanupTempAudioFiles();
+            
+            // 如果已经在播放提示音，则不再重复播放
+            if (this.isPlayingCompletionAudio) {
+              console.log('提示音正在播放中，不重复播放');
+              return;
+            }
+            
+            // 标记正在播放提示音
+            this.isPlayingCompletionAudio = true;
+            
+            // 播放完成提示音
+            this.playCompletionAudio(() => {
+              // 播放完成后重置标记
+              this.isPlayingCompletionAudio = false;
+              
+              // 跳转到核对页面
+              wx.navigateTo({
+                url: `/pages/dictation-complete/index?serial=${recordData.serial}`,
+                success: () => {
+                  console.log('成功跳转到核对听写页面');
+                },
+                fail: (err) => {
+                  console.error('跳转失败:', err);
+                }
+              });
+            });
+          } catch (error) {
+            console.error('保存听写记录失败:', error);
+            wx.navigateBack();
           }
-          wx.navigateBack();
+        }
+      }
+    });
+  },
+
+  // 组件销毁时清理资源
+  onUnload: function() {
+    // 停止音频播放
+    this.stopAudioPlay();
+    
+    // 释放音频资源
+    if (this.innerAudioContext) {
+      this.innerAudioContext.destroy();
+      this.innerAudioContext = null;
+    }
+    
+    // 清理临时音频文件
+    this.cleanupTempAudioFiles();
+  },
+
+  // 清理临时音频文件
+  cleanupTempAudioFiles: function() {
+    const wordList = this.data.wordList || [];
+    const fs = wx.getFileSystemManager();
+    
+    // 遍历单词列表，删除所有临时音频文件
+    wordList.forEach(item => {
+      if (item.voiceUrl) {
+        try {
+          fs.access({
+            path: item.voiceUrl,
+            success: () => {
+              // 文件存在，尝试删除
+              fs.unlink({
+                filePath: item.voiceUrl,
+                success: () => {
+                  console.log('成功删除临时音频文件:', item.voiceUrl);
+                },
+                fail: (err) => {
+                  console.error('删除临时音频文件失败:', err);
+                }
+              });
+            },
+            fail: () => {
+              // 文件不存在，忽略
+              console.log('临时音频文件不存在:', item.voiceUrl);
+            }
+          });
+        } catch (error) {
+          console.error('清理临时音频文件出错:', error);
         }
       }
     });
@@ -426,5 +797,101 @@ Page({
       [array[i], array[j]] = [array[j], array[i]];
     }
     return array;
-  }
+  },
+
+  // 判断答案是否正确
+  isAnswerCorrect: function(word, answer) {
+    if (!word || !answer) return false;
+    
+    // 将单词和答案都转为小写，并去除前后空格进行比较
+    const formattedWord = word.toLowerCase().trim();
+    const formattedAnswer = answer.toLowerCase().trim();
+    
+    return formattedWord === formattedAnswer;
+  },
+
+  // 检查完成提示音是否存在，没有则生成
+  checkCompletionAudio: function() {
+    const completionAudioPath = `${wx.env.USER_DATA_PATH}/completion_audio.mp3`;
+    const fs = wx.getFileSystemManager();
+    
+    try {
+      // 检查文件是否存在
+      fs.accessSync(completionAudioPath);
+      console.log('完成提示音已存在');
+      // 将路径保存到数据中，方便后续使用
+      this.completionAudioPath = completionAudioPath;
+    } catch (error) {
+      console.log('完成提示音不存在，开始生成...');
+      this.generateCompletionAudio();
+    }
+  },
+  
+  // 生成完成提示音
+  generateCompletionAudio: function() {
+    wx.cloud.callContainer({
+      "config": {
+        "env": "prod-5g5ywun6829a4db5"
+      },
+      "path": "/txapi/tts/text2voice",
+      "header": {
+        "X-WX-SERVICE": "word-dictation",
+        "content-type": "application/json",
+        "Authorization": `Bearer ${app.globalData.token}`
+      },
+      "method": "POST",
+      "data": {
+        "Text": "听写已完成，请上传听写结果",
+        "SessionId": `session-${Date.now()}`,
+        "Volume": 1,
+        "Speed": 0.9,
+        "ProjectId": 0,
+        "ModelType": 1,
+        "VoiceType": 501001, // 中文发音
+        "PrimaryLanguage": 1, // 中文
+        "SampleRate": 16000,
+        "Codec": "mp3",
+        "EmotionCategory": "neutral",
+        "EmotionIntensity": 100
+      }
+    }).then(response => {
+      if (response.statusCode === 200 && response.data.code === 0 && response.data.data.Audio) {
+        // 获取音频Base64数据
+        const audioBase64 = response.data.data.Audio;
+        
+        // 将Base64转换为临时文件
+        this.base64ToTempFile(audioBase64, "completion_audio.mp3").then(filePath => {
+          console.log('完成提示音生成成功:', filePath);
+          this.completionAudioPath = filePath;
+        }).catch(error => {
+          console.error('完成提示音文件保存失败:', error);
+        });
+      } else {
+        console.error('完成提示音生成接口返回错误:', response);
+      }
+    }).catch(error => {
+      console.error('完成提示音生成请求失败:', error);
+    });
+  },
+  
+  // Base64转临时文件（复用已有功能）
+  base64ToTempFile: function(base64Data, fileName) {
+    return new Promise((resolve, reject) => {
+      const filePath = `${wx.env.USER_DATA_PATH}/${fileName}`;
+      const buffer = wx.base64ToArrayBuffer(base64Data);
+      
+      wx.getFileSystemManager().writeFile({
+        filePath: filePath,
+        data: buffer,
+        encoding: 'binary',
+        success: () => {
+          resolve(filePath);
+        },
+        fail: (error) => {
+          console.error('写入文件失败:', error);
+          reject(error);
+        }
+      });
+    });
+  },
 }) 

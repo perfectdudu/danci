@@ -14,26 +14,35 @@
   />
 
   <view class="content">
-    <view class="word-display">
-      <text>{{currentWord.word || '书, 书本'}}</text>
+    <!-- 播放动画区域 -->
+    <view class="audio-animation-container">
+      <!-- 波浪动画 -->
+      <view class="wave-container {{isPlaying ? 'playing' : ''}}">
+        <view class="wave wave1"></view>
+        <view class="wave wave2"></view>
+        <view class="wave wave3"></view>
+        <view class="wave wave4"></view>
+        <view class="wave wave5"></view>
+      </view>
+      
+      <!-- 播放次数指示点 -->
+      <view class="play-counter">
+        <view class="dot {{playCount >= 1 ? 'active' : ''}}"></view>
+        <view class="dot {{playCount >= 2 ? 'active' : ''}}"></view>
+        <view class="dot {{playCount >= 3 ? 'active' : ''}}"></view>
+      </view>
     </view>
     
-    <view class="player-controls">
-      <view class="control-button prev-button" bindtap="prevWord">
-        <image src="/images/icons/{{currentIndex > 0 ? '上一个选中.png' : '上一个.png'}}" mode="aspectFit" class="control-icon"></image>
-      </view>
-      <view class="control-button play-button {{isPlaying ? 'active' : ''}}" bindtap="playWord">
+    <view class="control-section">
+      <!-- 播放控制按钮 -->
+      <view class="control-button" bindtap="playWord">
         <image src="/images/icons/{{isPlaying ? '暂停选中.png' : '播放选中.png'}}" mode="aspectFit" class="control-icon"></image>
       </view>
-      <view class="control-button next-button" bindtap="nextWord">
-        <image src="/images/icons/{{currentIndex < totalWords - 1 ? '下一个选中.png' : '下一个.png'}}" mode="aspectFit" class="control-icon"></image>
+      
+      <!-- 结束听写按钮 -->
+      <view class="control-button" bindtap="confirmExit">
+        <image src="/images/icons/结束.png" mode="aspectFit" class="control-icon"></image>
       </view>
-    </view>
-
-    <view class="stop-section">
-      <button class="stop-button" bindtap="endDictation">
-        <text class="iconfont icon-stop"></text> 结束听写
-      </button>
     </view>
   </view>
 </view> 
