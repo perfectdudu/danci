@@ -17,7 +17,9 @@ Page({
     playTimer: null, // 播放定时器
     answers: {},  // 初始化答案对象
     isPlayingCompletionAudio: false, // 标记是否正在播放完成提示音
-    completionPlayCount: 0 // 完成提示音播放次数计数
+    completionPlayCount: 0, // 完成提示音播放次数计数
+    isAudioReady: false, // 标记音频是否已准备好
+    autoPlayScheduled: false, // 标记是否已安排自动播放
   },
 
   onLoad: function (options) {
@@ -25,6 +27,21 @@ Page({
     this.playCount = 1;
     this.playTimer = null;
     this.initialPlay = true; // 标记为初始加载
+    this.autoPlayScheduled = false; // 标记是否已安排自动播放
+    
+    // 显示音频准备中提示
+    wx.showToast({
+      title: '音频准备中...',
+      icon: 'loading',
+      duration: 2000,
+      mask: true
+    });
+    
+    // 确保销毁可能存在的旧音频实例
+    if (this.innerAudioContext) {
+      this.innerAudioContext.destroy();
+      this.innerAudioContext = null;
+    }
     
     // 从全局变量获取单词列表
     const wordList = app.globalData.currentDictationWords || [];
@@ -50,23 +67,32 @@ Page({
       // 随机排序单词
       const shuffledWords = this.shuffleArray([...mockWords]);
       
+      // 初始时设置为暂停状态
       this.setData({
         wordList: shuffledWords,
         totalWords: shuffledWords.length,
         currentWord: shuffledWords[0],
         title: '英语基础词汇',
         startTime: new Date(), // 记录开始时间
-        isPlaying: true, // 默认设置为播放状态，显示暂停按钮
+        isPlaying: false, // 初始设置为暂停状态
         playCount: 1 // 确保播放次数UI显示为1
       });
       
-      console.log('准备自动播放第一个单词');
+      console.log('页面加载完成，准备延迟1.5秒后自动播放');
       
-      // 自动播放第一个单词 - 使用500ms延迟确保页面渲染完成
-      setTimeout(() => {
-        console.log('触发自动播放');
-        this.playWord();
-      }, 500);
+      // 延迟1.5秒后开始播放第一个单词
+      if (!this.autoPlayScheduled) {
+        this.autoPlayScheduled = true; // 标记已安排自动播放
+        setTimeout(() => {
+          console.log('延迟时间到，现在开始自动播放');
+          // 隐藏准备中提示
+          wx.hideToast();
+          // 设置为播放状态
+          this.setData({ isPlaying: true });
+          // 直接调用播放函数，绕过按钮逻辑
+          this.autoStartPlayback();
+        }, 1500);
+      }
       
       return;
     }
@@ -74,23 +100,62 @@ Page({
     // 随机排序单词
     const shuffledWords = this.shuffleArray([...wordList]);
     
+    // 初始时设置为暂停状态
     this.setData({
       wordList: shuffledWords,
       totalWords: shuffledWords.length,
       currentWord: shuffledWords[0],
       title: title,
       startTime: new Date(), // 记录开始时间
-      isPlaying: true, // 默认设置为播放状态，显示暂停按钮
+      isPlaying: false, // 初始设置为暂停状态
       playCount: 1 // 确保播放次数UI显示为1
     });
     
-    console.log('准备自动播放第一个单词');
+    console.log('页面加载完成，准备延迟1.5秒后自动播放');
     
-    // 确保页面准备就绪后播放音频（使用更长的延迟时间确保稳定性）
+    // 延迟1.5秒后开始播放
+    if (!this.autoPlayScheduled) {
+      this.autoPlayScheduled = true; // 标记已安排自动播放
       setTimeout(() => {
-      console.log('触发自动播放');
-      this.playWord();
-      }, 500);
+        console.log('延迟时间到，现在开始自动播放');
+        // 隐藏准备中提示
+        wx.hideToast();
+        // 设置为播放状态
+        this.setData({ isPlaying: true });
+        // 直接调用播放函数，绕过按钮逻辑
+        this.autoStartPlayback();
+      }, 1500);
+    }
+  },
+
+  // 用于自动播放的特殊方法，避免与手动播放/暂停逻辑冲突
+  autoStartPlayback: function() {
+    const { currentWord } = this.data;
+    
+    if (!currentWord) {
+      console.error('没有当前单词数据，无法开始自动播放');
+      return;
+    }
+    
+    console.log('开始自动播放单词:', currentWord.word);
+    
+    // 根据词汇是否有预生成的语音URL决定播放方式
+    if (currentWord.voiceUrl) {
+      // 使用预生成的语音URL播放
+      this.playWordWithVoiceUrl(currentWord.voiceUrl);
+    } else {
+      console.error('单词没有预生成的语音URL:', currentWord.word);
+      wx.showToast({
+        title: '该单词没有音频',
+        icon: 'none',
+        duration: 2000
+      });
+      
+      // 延迟2秒后尝试播放下一个单词
+      setTimeout(() => {
+        this.autoPlayNext();
+      }, 2000);
+    }
   },
 
   // 页面显示时触发
@@ -98,7 +163,8 @@ Page({
     console.log('页面显示，检查是否需要播放');
     
     // 如果页面重新显示且是播放状态，则恢复播放
-    if (this.data.isPlaying && this.data.currentWord && this.data.currentWord.voiceUrl) {
+    // 但避免与onLoad中的初始播放冲突
+    if (!this.initialPlay && !this.autoPlayScheduled && this.data.isPlaying && this.data.currentWord && this.data.currentWord.voiceUrl) {
       // 短暂延迟确保音频上下文已准备好
       setTimeout(() => {
         this.playWordWithVoiceUrl(this.data.currentWord.voiceUrl);
@@ -110,20 +176,18 @@ Page({
   playWord: function() {
     const { currentWord, isPlaying } = this.data;
     
-    // 如果是初始加载，不需要切换状态
-    if (this.initialPlay) {
-      console.log('初始加载，开始播放');
-      this.initialPlay = false;
-    } else if (isPlaying) {
+    // 用户点击播放/暂停按钮的逻辑
+    if (isPlaying) {
       // 如果正在播放，则暂停
-      console.log('已在播放状态，切换到暂停');
+      console.log('用户点击暂停按钮，暂停播放');
       this.stopAudioPlay();
       this.setData({ isPlaying: false });
       return;
+    } else {
+      // 如果已暂停，则恢复播放
+      console.log('用户点击播放按钮，恢复播放');
+      this.setData({ isPlaying: true });
     }
-    
-    // 设置播放状态
-    this.setData({ isPlaying: true });
     
     if (!currentWord) {
       console.error('没有当前单词数据');
@@ -131,7 +195,7 @@ Page({
       return;
     }
     
-    console.log('播放单词:', currentWord.word);
+    console.log('开始播放单词:', currentWord.word);
     
     // 根据词汇是否有预生成的语音URL决定播放方式
     if (currentWord.voiceUrl) {
@@ -169,11 +233,14 @@ Page({
       this.innerAudioContext.offError();
       // 停止播放
       this.innerAudioContext.stop();
+      // 销毁实例
+      this.innerAudioContext.destroy();
+      this.innerAudioContext = null;
     }
     
     // 重置播放次数
     this.playCount = 1;
-      this.setData({
+    this.setData({
       playCount: 1
     });
   },
@@ -188,18 +255,31 @@ Page({
       playCount: 1  // 默认从1开始，即第一个点高亮
     });
     
-    // 清除之前的定时器，确保不会有重复的播放
+    // 清除可能存在的定时器
     if (this.playTimer) {
       clearTimeout(this.playTimer);
       this.playTimer = null;
     }
     
-    // 创建或重用音频上下文
-    if (!this.innerAudioContext) {
-      this.innerAudioContext = wx.createInnerAudioContext();
+    // 确保先销毁可能存在的旧音频实例
+    if (this.innerAudioContext) {
+      // 先停止当前可能正在播放的音频
+      try {
+        this.innerAudioContext.stop();
+        // 移除事件监听
+        this.innerAudioContext.offEnded();
+        this.innerAudioContext.offError();
+        // 销毁实例
+        this.innerAudioContext.destroy();
+      } catch (err) {
+        console.error('销毁音频实例失败:', err);
+      }
+      this.innerAudioContext = null;
     }
     
-    console.log('准备播放音频:', voiceUrl);
+    // 创建新的音频上下文
+    this.innerAudioContext = wx.createInnerAudioContext();
+    console.log('创建新的音频实例，准备播放音频:', voiceUrl);
     
     try {
       // 检查文件是否存在
@@ -208,10 +288,6 @@ Page({
         path: voiceUrl,
         success: () => {
           console.log('音频文件存在:', voiceUrl);
-          
-          // 移除之前的所有事件监听，避免重复绑定导致多次触发
-          this.innerAudioContext.offEnded();
-          this.innerAudioContext.offError();
           
           // 设置音频源
           this.innerAudioContext.src = voiceUrl;
@@ -247,13 +323,14 @@ Page({
               // 播放完3次后重置计数 UI 不重置
               console.log('已完成3次播放，准备播放下一个单词');
               
+              // 在1秒后自动播放下一个单词
+              console.log('等待1秒后播放下一个单词');
+              
               // 清除可能存在的之前的定时器
               if (this.playTimer) {
                 clearTimeout(this.playTimer);
               }
               
-              // 在1秒后自动播放下一个单词
-              console.log('等待1秒后播放下一个单词');
               this.playTimer = setTimeout(() => {
                 if (this.data.isPlaying) { // 确保用户没有暂停
                   // 移动到下一个单词前重置播放次数 UI
@@ -264,7 +341,7 @@ Page({
                   console.log('开始播放下一个单词');
                   this.autoPlayNext();
                 }
-              }, 1000); // 设置1秒的停顿时间
+              }, 1000);
             }
           };
           
@@ -283,12 +360,6 @@ Page({
               isPlaying: false,
               playCount: 1
             });
-            
-            // 清除可能存在的定时器
-            if (this.playTimer) {
-              clearTimeout(this.playTimer);
-              this.playTimer = null;
-            }
             
             // 尝试播放下一个单词
             setTimeout(() => {
@@ -313,12 +384,6 @@ Page({
             playCount: 1
           });
           
-          // 清除可能存在的定时器
-          if (this.playTimer) {
-            clearTimeout(this.playTimer);
-            this.playTimer = null;
-          }
-          
           // 尝试播放下一个单词
           setTimeout(() => {
             this.autoPlayNext();
@@ -338,12 +403,6 @@ Page({
         isPlaying: false,
         playCount: 1
       });
-      
-      // 清除可能存在的定时器
-      if (this.playTimer) {
-        clearTimeout(this.playTimer);
-        this.playTimer = null;
-      }
       
       // 尝试播放下一个单词
       setTimeout(() => {
@@ -670,44 +729,95 @@ Page({
       return;
     }
     
+    // 确保停止所有其他音频播放
+    this.stopAudioPlay();
+    
     // 重置播放计数
     this.completionPlayCount = 0;
     
     // 创建新的音频上下文（与单词播放分开）
-    const completionAudio = wx.createInnerAudioContext();
-    completionAudio.src = this.completionAudioPath;
-    
-    // 播放函数
-    const playCompletionRepetition = () => {
-      this.completionPlayCount++;
-      console.log(`完成提示音播放次数: ${this.completionPlayCount}/3`);
-      
-      if (this.completionPlayCount < 3) {
-        // 还未播放3次，继续播放
-        completionAudio.play();
-      } else {
-        console.log('完成提示音播放3次完毕');
-        // 确保销毁音频实例，避免重复播放
-        completionAudio.destroy();
-        if (callback) callback();
+    try {
+      if (this.completionAudioContext) {
+        try {
+          this.completionAudioContext.destroy();
+        } catch (e) {
+          console.error('销毁旧的完成提示音上下文失败:', e);
+        }
       }
-    };
-    
-    // 监听播放结束事件
-    completionAudio.onEnded(playCompletionRepetition);
-    
-    // 监听错误事件
-    completionAudio.onError((err) => {
-      console.error('完成提示音播放出错:', err);
-      completionAudio.destroy();
+      
+      const completionAudio = wx.createInnerAudioContext();
+      this.completionAudioContext = completionAudio;
+      
+      completionAudio.src = this.completionAudioPath;
+      
+      // 播放函数
+      const playCompletionRepetition = () => {
+        this.completionPlayCount++;
+        console.log(`完成提示音播放次数: ${this.completionPlayCount}/3`);
+        
+        if (this.completionPlayCount < 3) {
+          // 还未播放3次，等待一段时间后继续播放
+          setTimeout(() => {
+            try {
+              completionAudio.play();
+            } catch (err) {
+              console.error('重复播放完成提示音失败:', err);
+              // 出错时直接调用回调
+              completionAudio.destroy();
+              if (callback) callback();
+            }
+          }, 500);
+        } else {
+          console.log('完成提示音播放3次完毕');
+          // 确保销毁音频实例，避免重复播放
+          try {
+            completionAudio.destroy();
+          } catch (e) {
+            console.error('销毁完成提示音上下文失败:', e);
+          }
+          this.completionAudioContext = null;
+          if (callback) callback();
+        }
+      };
+      
+      // 监听播放结束事件
+      completionAudio.onEnded(playCompletionRepetition);
+      
+      // 监听错误事件
+      completionAudio.onError((err) => {
+        console.error('完成提示音播放出错:', err);
+        try {
+          completionAudio.destroy();
+        } catch (e) {
+          console.error('销毁错误的完成提示音上下文失败:', e);
+        }
+        this.completionAudioContext = null;
+        if (callback) callback();
+      });
+      
+      // 确保音频准备好后再播放第一次
+      completionAudio.onCanplay(() => {
+        // 等待一段时间再开始播放
+        setTimeout(() => {
+          try {
+            // 开始播放
+            completionAudio.play();
+          } catch (err) {
+            console.error('播放完成提示音失败:', err);
+            try {
+              completionAudio.destroy();
+            } catch (e) {
+              console.error('销毁失败的完成提示音上下文失败:', e);
+            }
+            this.completionAudioContext = null;
+            if (callback) callback();
+          }
+        }, 200);
+      });
+    } catch (error) {
+      console.error('创建完成提示音上下文失败:', error);
       if (callback) callback();
-    });
-    
-    // 确保音频准备好后再播放第一次
-    completionAudio.onCanplay(() => {
-      // 开始播放
-      completionAudio.play();
-    });
+    }
   },
 
   // 组件销毁时清理资源
@@ -717,8 +827,22 @@ Page({
     
     // 释放音频资源
     if (this.innerAudioContext) {
-      this.innerAudioContext.destroy();
+      try {
+        this.innerAudioContext.destroy();
+      } catch (e) {
+        console.error('销毁innerAudioContext失败:', e);
+      }
       this.innerAudioContext = null;
+    }
+    
+    // 释放完成提示音资源
+    if (this.completionAudioContext) {
+      try {
+        this.completionAudioContext.destroy();
+      } catch (e) {
+        console.error('销毁completionAudioContext失败:', e);
+      }
+      this.completionAudioContext = null;
     }
     
     // 清理临时音频文件
@@ -890,7 +1014,13 @@ Page({
         success: (res) => {
           if (res.confirm) {
           // 停止音频播放
-          this.innerAudioContext.stop();
+          if (this.innerAudioContext) {
+            try {
+              this.innerAudioContext.stop();
+            } catch (e) {
+              console.error('停止音频播放失败:', e);
+            }
+          }
           
           // 返回上一页
           wx.navigateBack();
