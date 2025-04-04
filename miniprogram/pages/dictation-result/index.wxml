@@ -1,5 +1,5 @@
 <!-- 听写结果页面 -->
-<view class="container">
+<view class="result-container">
   <!-- 使用Vant导航栏组件 -->
   <van-nav-bar
     title="听写结果"
@@ -13,43 +13,50 @@
     title-class="nav-title"
   />
 
-  <view class="result-card">
-    <!-- 听写标题 -->
-    
-    <!-- 统计数据 -->
-    <view class="stats-container">
-      <view class="stat-item correct">
-        <view class="stat-value">{{correctCount}}</view>
-        <view class="stat-label">正确</view>
-      </view>
-      <view class="stat-item wrong">
-        <view class="stat-value">{{wrongCount}}</view>
-        <view class="stat-label">错误</view>
-      </view>
-      <view class="stat-item accuracy">
-        <view class="stat-value">{{correctRate}}%</view>
-        <view class="stat-label">正确率</view>
+  <!-- 使用与record页面一致的结构 -->
+  <view class="record-item">
+    <view class="record-header">
+      <view class="record-info">
+        <view class="record-title-row">
+          <text class="record-title">{{dictationTitle}}</text>
+          <view class="record-image" wx:if="{{picUrl}}" catchtap="previewImage">
+            <image src="{{picUrl}}" mode="aspectFill"></image>
+          </view>
+        </view>
+        <view class="record-time">{{recordDate}}</view>
       </view>
     </view>
-    
-    <!-- 用时 -->
-    <!-- <view class="time-used">用时: {{timeUsed}}分钟</view> -->
+    <view class="record-content">
+      <view class="record-stats">
+        <view class="stat-item">
+          <text class="stat-value">{{correctCount + wrongCount}}</text>
+          <text class="stat-label">单词总数</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value wrong">{{wrongCount}}</text>
+          <text class="stat-label">错误单词</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{correctRate}}%</text>
+          <text class="stat-label">正确率</text>
+        </view>
+      </view>
+    </view>
   </view>
   
-  <!-- 单词详情 -->
+  <!-- 单词详情部分 -->
   <view class="details-section">
     <view class="section-title">单词详情</view>
-    
+
     <view class="word-list">
       <block wx:for="{{wordList}}" wx:key="word">
         <view class="word-item {{item.isCorrect ? 'correct' : 'wrong'}}">
           <view class="word-text">{{item.word}}</view>
           <view wx:if="{{!item.isCorrect}}" class="word-answer">
-            您的答案: {{item.userAnswer}}
+            您的答案: {{item.userInput}}
           </view>
         </view>
       </block>
     </view>
   </view>
- 
 </view> 

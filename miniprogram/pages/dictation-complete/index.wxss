@@ -4,81 +4,70 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #f0f9ff;
+  background-color: #f5fbff;
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
 }
 
 
-
 .content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  position: relative;
-  z-index: 1;
-  width: 100%;
+  padding-top: 10vh; /* 适应顶部导航栏 */
   box-sizing: border-box;
-  overflow: hidden; /* 防止内容溢出 */
-  padding-top: 0; /* 导航栏已有placeholder */
+  margin: 0; /* 重置margin */
 }
 
 .scrollable-content {
-  width: 100%;
+  flex: 1;
+  padding: 0 0 180rpx; /* 增加底部内边距，为按钮留出更多空间 */
   box-sizing: border-box;
 }
 
-/* 完成图标样式 */
+/* 完成图标 */
 .complete-icon-container {
   display: flex;
   justify-content: center;
-  margin: 40rpx 0;
-  padding: 0 30rpx;
+  margin: 60rpx 0;
 }
 
 .complete-icon {
-  width: 300rpx;
-  height: 300rpx;
+  width: 180rpx; /* 加大图标尺寸 */
+  height: 180rpx;
 }
 
-/* 完成提示文字 */
+/* 完成文字 */
 .complete-text {
   font-size: 40rpx;
   font-weight: bold;
   color: #333;
-  margin-bottom: 60rpx;
   text-align: center;
-  padding: 0 30rpx;
+  margin-bottom: 80rpx;
 }
 
 /* 步骤容器 */
 .steps-container {
-  width: 100%;
-  margin-bottom: 40rpx;
-  padding: 0 30rpx 30rpx;
-  box-sizing: border-box;
+  background-color: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
 }
 
 /* 步骤项 */
 .step-item {
-  background-color: white;
-  border-radius: 20rpx;
-  padding: 30rpx;
-  margin-bottom: 30rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
-  width: 100%;
-  box-sizing: border-box;
+  margin-bottom: 40rpx;
+}
+
+.step-item:last-child {
+  margin-bottom: 0;
 }
 
 .step-header {
+  display: flex;
+  align-items: center;
   margin-bottom: 20rpx;
-}
-
-.step-number {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #4CAF50;
 }
 
 .step-title {
@@ -87,118 +76,193 @@
   color: #333;
 }
 
-.error-text {
-  color: #ff4d4f;
-  background-color: #fff2f0;
-  padding: 4rpx 12rpx;
-  border-radius: 8rpx;
-  margin: 0 4rpx;
-}
-
 .step-content {
-  width: 100%;
+  padding: 0 10rpx;
 }
 
 /* 上传区域 */
+.upload-section {
+  margin: 0 30rpx;
+}
+
+.upload-title {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 24rpx;
+  padding-left: 10rpx;
+}
+
+/* 上传容器 */
 .upload-container {
+  width: 100%;
+  height: 400rpx; /* 加高上传区域 */
+  background-color: #fff;
+  border-radius: 16rpx;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
+  overflow: hidden;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  border: 2rpx dashed #ddd;
 }
 
 .upload-placeholder {
-  width: 200rpx;
-  height: 200rpx;
-  background-color: #f5f5f5;
-  border: 2rpx dashed #ddd;
-  border-radius: 12rpx;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
 }
 
 .upload-icon {
-  font-size: 80rpx;
-  color: #ccc;
-  font-weight: 200;
+  font-size: 100rpx;
+  color: #07c160;
+  line-height: 1;
+  margin-bottom: 20rpx;
 }
 
-/* 单词列表 */
-.word-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20rpx;
+.upload-hint {
+  font-size: 28rpx;
+  color: #999;
 }
 
-.word-item {
-  background-color: #f9f9f9;
-  border-radius: 12rpx;
-  padding: 16rpx 24rpx;
-  min-width: 120rpx;
-  text-align: center;
-  border: 1rpx solid #eee;
-  position: relative; /* 添加相对定位 */
-}
-
-/* 选中效果 */
-.word-item.selected {
-  background-color: #fff0f0;
-  border: 1rpx solid #ffcccc;
-}
-
-/* 横杠效果 */
-.word-item.selected .word-text {
-  position: relative;
-}
-
-.word-item.selected .word-text::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 50%;
+/* 上传的图片 */
+.uploaded-image {
   width: 100%;
-  height: 4rpx; /* 加粗横线 */
-  background-color: #ff4d4f;
-  z-index: 2;
+  height: 100%;
+  object-fit: contain;
 }
 
-.word-text {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 4rpx;
-}
-
-.word-translation {
-  font-size: 24rpx;
-  color: #888;
-}
-
-/* 保存按钮容器 */
+/* 按钮容器 */
 .button-container {
+  padding: 30rpx;
+  background-color: transparent; /* 移除白色背景色 */
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 20rpx 30rpx calc(30rpx + env(safe-area-inset-bottom)); /* 增加安全区域的底部内边距 */
-  background-color: #f0f9ff;
-  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
-  z-index: 100;
-  box-sizing: border-box;
+  display: flex;
+  align-items: center; /* 垂直居中 */
+  justify-content: center; /* 水平居中 */
+  height: 150rpx; /* 设置固定高度 */
+  z-index: 10;
 }
 
 /* 保存按钮 */
 .save-button {
-  background-color: #4CAF50;
-  color: white;
-  border-radius: 48rpx;
-  padding: 24rpx 0;
-  text-align: center;
-  font-size: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #07c160;
+  color: #fff;
+  border-radius: 44rpx; /* 圆角更大 */
+  font-size: 34rpx;
+  height: 90rpx;
+  line-height: 90rpx;
+  width: 100%;
   font-weight: bold;
-  box-shadow: 0 4rpx 16rpx rgba(66, 133, 244, 0.3);
-  width: 100% !important;
-  box-sizing: border-box;
-  margin: 0; /* 重置margin */
+  box-shadow: 0 8rpx 16rpx rgba(7, 193, 96, 0.2);
+  border: none;
+}
+
+.save-button.disabled {
+  background-color: #cccccc;
+  color: #ffffff;
+  box-shadow: none;
+}
+
+/* 自定义导航栏样式 */
+.custom-nav {
+  --nav-bar-background-color: #07c160 !important;
+  --nav-bar-text-color: #ffffff !important;
+}
+
+.nav-title {
+  font-weight: bold !important;
+  font-size: 36rpx !important;
+}
+
+/* 核对结果样式 */
+.result-summary {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 20rpx;
+}
+
+.correct-count {
+  color: #07c160;
+  font-weight: bold;
+}
+
+.wrong-count {
+  color: #ee0a24;
+  font-weight: bold;
+}
+
+.word-list {
+  margin-top: 20rpx;
+  background: #f8f8f8;
+  border-radius: 8rpx;
+  padding: 10rpx;
+}
+
+.word-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx;
+  border-bottom: 1rpx solid #eee;
+}
+
+.word-item:last-child {
+  border-bottom: none;
+}
+
+.correct-item {
+  background-color: rgba(7, 193, 96, 0.05);
+}
+
+.wrong-item {
+  background-color: rgba(238, 10, 36, 0.05);
+}
+
+.word-original {
+  font-size: 30rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.word-compare {
+  display: flex;
+  align-items: center;
+}
+
+.word-status {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 10rpx;
+  font-size: 24rpx;
+}
+
+.word-status.correct {
+  background-color: #07c160;
+  color: #fff;
+}
+
+.word-status.wrong {
+  background-color: #ee0a24;
+  color: #fff;
+}
+
+.word-actual {
+  font-size: 28rpx;
+  color: #ee0a24;
+  text-decoration: line-through;
+  max-width: 200rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 } 

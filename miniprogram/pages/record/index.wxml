@@ -1,12 +1,12 @@
 <!--听写记录页面-->
-<view class="container">
+<view class="record-container">
   <!-- 自定义导航栏 -->
   <custom-header title="听写记录" showBack="{{false}}" bind:heightChange="onHeaderHeightChange"></custom-header>
 
   <!-- 记录列表 -->
   <scroll-view scroll-y class="record-list">
     <block wx:if="{{recordList.length > 0}}">
-      <view class="record-item" wx:for="{{recordList}}" wx:key="id" bindtap="viewDetail" data-id="{{item.id}}">
+      <view class="record-item" wx:for="{{recordList}}" wx:key="id" bindtap="viewDetail" data-index="{{index}}">
         <view class="record-header">
           <view class="record-info">
             <view class="record-title-row">
@@ -43,6 +43,4 @@
     </view>
   </scroll-view>
 
-  <!-- 提示下拉刷新文本 -->
-  <view class="pull-tip">下拉可以刷新记录</view>
 </view> 

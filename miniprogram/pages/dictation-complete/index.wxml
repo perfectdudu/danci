@@ -9,28 +9,21 @@
         <image class="complete-icon" src="/images/icons/完成.png" mode="aspectFit"></image>
       </view>
       <!-- 完成提示文字 -->
-      <view class="complete-text">真棒，听写完成！</view>
-      <!-- 步骤指引 -->
-      <view class="steps-container">
-        <!-- 第一步 -->
-        <view class="step-item">
-          <view class="step-header">
-            <text class="step-title">拍照上传听写结果</text>
+      <view class="complete-text">真棒，请上传听写结果！</view>
+      <!-- 拍照上传区域 -->
+      <view class="upload-section">
+        <view class="upload-container" bindtap="uploadImage">
+          <view class="upload-placeholder" wx:if="{{!uploadedImage && !imageUrl}}">
+            <view class="upload-icon">+</view>
+            <view class="upload-hint">点击上传</view>
           </view>
-          <view class="step-content">
-            <view class="upload-container" bindtap="uploadImage">
-              <view class="upload-placeholder">
-                <view class="upload-icon">+</view>
-              </view>
-            </view>
-          </view>
+          <image wx:if="{{uploadedImage || imageUrl}}" class="uploaded-image" src="{{uploadedImage || imageUrl}}" mode="aspectFit"></image>
         </view>
-        <!-- 第二步 -->
       </view>
     </scroll-view>
     <!-- 保存按钮 - 固定在底部 -->
     <view class="button-container">
-      <button class="save-button" bindtap="saveDictationResult">核对听写结果</button>
+      <button class="save-button {{processingComplete ? '' : 'disabled'}}" bindtap="saveDictationResult">核对听写结果</button>
     </view>
   </view>
 </view>

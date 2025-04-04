@@ -2,7 +2,8 @@
 App({
   globalData: {
     userInfo: null,
-    
+    token: null,
+    currentImageUrl: null
   },
   onLaunch: async function () {
     if (!wx.cloud) {

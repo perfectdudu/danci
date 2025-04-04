@@ -1,7 +1,0 @@
-{
-  "usingComponents": {
-    "van-nav-bar": "../../miniprogram_npm/@vant/weapp/nav-bar/index"
-  },
-  "navigationBarTitleText": "错题本",
-  "navigationStyle": "custom"
-} 

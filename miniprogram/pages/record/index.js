@@ -120,13 +120,25 @@ Page({
 
   // 查看记录详情
   viewDetail: function(e) {
-    const id = e.currentTarget.dataset.id;
-    const record = this.data.recordList.find(item => item.id === id);
-    if (record && record.serial) {
-      wx.navigateTo({
-        url: `/pages/dictation-result/index?serial=${record.serial}`
-      });
+    const index = e.currentTarget.dataset.index;
+    const record = this.data.recordList[index];
+    
+    // 存储当前记录到本地存储，以便在详情页获取
+    const records = wx.getStorageSync('dictationRecords') || [];
+    if (!records.some(r => r.serial === record.serial)) {
+      records.push(record);
+      wx.setStorageSync('dictationRecords', records);
     }
+
+    // 如果有图片，存储图片URL到全局数据
+    if (record.imageUrl) {
+      getApp().globalData.currentImageUrl = record.imageUrl;
+    }
+    
+    // 导航到结果详情页，并传递serial参数
+    wx.navigateTo({
+      url: `/pages/dictation-result/index?serial=${record.serial}`
+    });
   },
 
   // 预览图片

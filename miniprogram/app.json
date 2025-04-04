@@ -2,12 +2,7 @@
   "pages": [
     "pages/home/index",
     "pages/record/index",
-    "pages/profile/index",
     "pages/dictation/index",
-    "pages/result/index",
-    "pages/mistakes/index",
-    "pages/settings/index",
-    "pages/wordList/index",
     "pages/dictation-complete/index",
     "pages/dictation-result/index"
   ],

@@ -13,6 +13,7 @@
 /* 导航栏容器固定处理 */
 .van-nav-bar {
   height: 44px !important;
+  background-color: #4CAF50 !important;
 }
 
 .van-nav-bar__content {
@@ -161,31 +162,21 @@ button::after{
   border: none;
 }
 
-/* 自定义导航栏覆盖样式 */
-.custom-nav {
-  background: transparent !important;
-  box-shadow: none !important;
-  border-bottom: none !important;
-}
-
-.van-nav-bar__content {
-  background: transparent !important;
-}
 
 /* 导航栏标题样式 */
 .nav-title {
-  color: #4CAF50 !important;
+  color: #fff !important;
   font-weight: bold !important;
 }
 
 /* 覆盖Vant导航栏返回按钮颜色 */
 .van-nav-bar__text {
-  color: #4CAF50 !important;
+  color: #fff !important;
 }
 
 .van-icon-arrow-left {
-  color: #4CAF50 !important;
+  color: #fff !important;
 }
 .van-icon-arrow-left::before {
-  color: #4CAF50 !important;
+  color: #fff !important;
 }
