@@ -8,9 +8,7 @@
         bindinput="onContentInput"
         value="{{feedbackContent}}"
         maxlength="500"
-        auto-height
       ></textarea>
-      <view class="form-tip">您的反馈是我们持续改进的动力</view>
     </view>
     
     <!-- <view class="form-item">
