@@ -185,18 +185,13 @@ Page({
         // 提取所有文本检测结果
         const detections = ocrRes.data.data.TextDetections;
 
-        // 过滤掉无关文本
-        const filteredDetections = detections.filter(item => {
-          const text = item.DetectedText.toLowerCase();
-          return !text.includes('结果:') &&
-            !text.includes('广告:') &&
-            !text.includes('下载>');
-        });
+        // 不再过滤识别结果，保留所有检测到的文本
+        const allDetections = detections;
 
         // 处理每一行文本，提取单词
         let allWords = [];
 
-        filteredDetections.forEach(item => {
+        allDetections.forEach(item => {
           // 分割每行文本中的单词（按空格、逗号、分号等分隔）
           const lineWords = item.DetectedText
             .split(/[,，、;；\s]/)

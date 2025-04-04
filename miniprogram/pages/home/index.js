@@ -756,21 +756,16 @@ Page({
             // 提取所有文本检测结果
             const detections = ocrRes.data.data.TextDetections;
 
-            // 过滤掉"结果:"、"广告:"、"下载>"等无关文本
-            const filteredDetections = detections.filter(item => {
-              const text = item.DetectedText.toLowerCase();
-              return !text.includes('结果:') &&
-                !text.includes('广告:') &&
-                !text.includes('下载>');
-            });
+            // 不再过滤识别结果，保留所有检测到的文本
+            const allDetections = detections;
 
             // 处理每一行文本，提取单词
             let allWords = [];
 
-            filteredDetections.forEach(item => {
-              // 分割每行文本中的单词（按逗号分隔）
+            allDetections.forEach(item => {
+              // 分割每行文本中的单词（按逗号、顿号、空格等分隔）
               const lineWords = item.DetectedText
-                .split(/[,，、]/)
+                .split(/[,，、\s]/)  // 添加 \s 匹配空格
                 .map(word => word.trim())
                 .filter(word => word && word.length > 0);
 
