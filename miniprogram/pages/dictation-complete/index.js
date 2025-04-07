@@ -27,7 +27,7 @@ Page({
         if (res.confirm) {
           // 用户确认返回，返回到听写页面重新听写
           wx.navigateBack({
-            delta: 2
+            delta: 1
           });
         }
         // 用户点击取消，留在当前页面
@@ -109,25 +109,51 @@ Page({
       return;
     }
 
+    // 先选择图片
     wx.chooseMedia({
       count: 1,
       mediaType: ['image'],
       sourceType: ['camera', 'album'],
       success: res => {
         const tempFilePath = res.tempFiles[0].tempFilePath;
+        
+        // 使用editImage接口让用户编辑图片
+        wx.editImage({
+          src: tempFilePath, // 图片路径
+          success: res => {
+            // 获取编辑后的图片路径
+            const editedFilePath = res.tempFilePath;
+            
+            this.setData({
+              uploadedImage: editedFilePath,
+              processingOcr: true
+            });
 
-        this.setData({
-          uploadedImage: tempFilePath,
-          processingOcr: true
+            wx.showLoading({
+              title: '上传和识别中...',
+              mask: true
+            });
+
+            // 处理识别流程
+            this.processOcrImage(editedFilePath);
+          },
+          fail: err => {
+            console.error('编辑图片失败，使用原始图片继续:', err);
+            // 编辑图片失败时，直接使用原始图片继续流程
+            this.setData({
+              uploadedImage: tempFilePath,
+              processingOcr: true
+            });
+
+            wx.showLoading({
+              title: '上传和识别中...',
+              mask: true
+            });
+
+            // 处理识别流程
+            this.processOcrImage(tempFilePath);
+          }
         });
-
-        wx.showLoading({
-          title: '上传和识别中...',
-          mask: true
-        });
-
-        // 处理识别流程
-        this.processOcrImage(tempFilePath);
       }
     });
   },

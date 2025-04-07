@@ -20,6 +20,7 @@ Page({
     completionPlayCount: 0, // 完成提示音播放次数计数
     isAudioReady: false, // 标记音频是否已准备好
     autoPlayScheduled: false, // 标记是否已安排自动播放
+    allWordsCompleted: false, // 添加标记，表示所有单词已播放完成
   },
 
   onLoad: function (options) {
@@ -195,7 +196,41 @@ Page({
 
   // 播放当前单词
   playWord: function() {
-    const { currentWord, isPlaying } = this.data;
+    const { currentWord, isPlaying, currentIndex, totalWords, allWordsCompleted } = this.data;
+    
+    // 检查是否所有单词都已播放完成
+    if (allWordsCompleted && !isPlaying) {
+      // 所有单词已播放完成且当前是暂停状态，弹出确认框
+      wx.showModal({
+        title: '重新开始听写',
+        content: '是否重新开始听写？',
+        confirmText: '重新开始',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            // 用户确认重新开始，重置索引到第一个单词
+            this.setData({
+              currentIndex: 0,
+              currentWord: this.data.wordList[0],
+              isPlaying: true,
+              playCount: 1,
+              allWordsCompleted: false // 重置标记
+            });
+            
+            // 开始播放第一个单词
+            if (this.data.wordList[0].voiceUrl) {
+              this.playWordWithVoiceUrl(this.data.wordList[0].voiceUrl);
+            } else {
+              wx.showToast({
+                title: '该单词没有音频',
+                icon: 'none'
+              });
+            }
+          }
+        }
+      });
+      return;
+    }
     
     // 用户点击播放/暂停按钮的逻辑
     if (isPlaying) {
@@ -500,7 +535,8 @@ Page({
         } else {
           // 已经到达最后一个单词
           this.setData({
-            isPlaying: false
+            isPlaying: false,
+            allWordsCompleted: true // 添加标记，表示所有单词已播放完成
           });
           wx.showToast({
             title: '所有单词已播放完',
@@ -516,7 +552,8 @@ Page({
     } else {
       // 已经是最后一个单词
       this.setData({
-        isPlaying: false
+        isPlaying: false,
+        allWordsCompleted: true // 添加标记，表示所有单词已播放完成
       });
       wx.showToast({
         title: '所有单词已播放完',
@@ -854,7 +891,7 @@ Page({
 
   // 组件销毁时清理资源
   onUnload: function() {
-    console.log('页面卸载，清理资源');
+    console.log('页面卸载，停止音频播放');
     
     // 清除定时器
     if (this.playTimer) {
@@ -862,23 +899,23 @@ Page({
       this.playTimer = null;
     }
     
-    // 停止并销毁音频上下文
+    // 停止音频播放，但不销毁音频上下文
     if (this.innerAudioContext) {
       try {
         this.innerAudioContext.stop();
-        this.innerAudioContext.destroy();
+        // 不再调用destroy()，保留音频上下文
       } catch (err) {
-        console.error('销毁音频上下文失败:', err);
+        console.error('停止音频播放失败:', err);
       }
     }
     
-    // 停止并销毁完成提示音
+    // 停止完成提示音播放，但不销毁音频上下文
     if (this.completionAudioContext) {
       try {
         this.completionAudioContext.stop();
-        this.completionAudioContext.destroy();
+        // 不再调用destroy()，保留音频上下文
       } catch (err) {
-        console.error('销毁完成提示音上下文失败:', err);
+        console.error('停止完成提示音播放失败:', err);
       }
     }
     
@@ -888,39 +925,10 @@ Page({
     });
   },
 
-  // 清理临时音频文件
+  // 清理临时音频文件 - 修改为不删除文件
   cleanupTempAudioFiles: function() {
-    const wordList = this.data.wordList || [];
-    const fs = wx.getFileSystemManager();
-    
-    // 遍历单词列表，删除所有临时音频文件
-    wordList.forEach(item => {
-      if (item.voiceUrl) {
-        try {
-          fs.access({
-            path: item.voiceUrl,
-            success: () => {
-              // 文件存在，尝试删除
-              fs.unlink({
-                filePath: item.voiceUrl,
-                success: () => {
-                  console.log('成功删除临时音频文件:', item.voiceUrl);
-                },
-                fail: (err) => {
-                  console.error('删除临时音频文件失败:', err);
-                }
-              });
-            },
-            fail: () => {
-              // 文件不存在，忽略
-              console.log('临时音频文件不存在:', item.voiceUrl);
-            }
-          });
-        } catch (error) {
-          console.error('清理临时音频文件出错:', error);
-        }
-      }
-    });
+    console.log('不再清理临时音频文件，保留在临时目录中');
+    // 不再执行删除操作，保留音频文件
   },
   
   // 随机排序数组

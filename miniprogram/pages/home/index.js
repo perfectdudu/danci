@@ -586,141 +586,293 @@ Page({
       title: '处理中...',
     });
 
+    // 先选择图片
     wx.chooseMedia({
       count: 1,
       mediaType: ['image'],
       sourceType: ['camera', 'album'],
-      success: async res => {
-        try {
-          const tempFilePath = res.tempFiles[0].tempFilePath;
-
-          // 1. 上传图片到云存储
-          const cloudPath = `ocr_images/${Date.now()}-${Math.random().toString(36).substr(2)}.png`;
-
-          wx.showLoading({
-            title: '上传图片中...',
-          });
-
-          const uploadRes = await wx.cloud.uploadFile({
-            cloudPath: cloudPath,
-            filePath: tempFilePath
-          });
-
-          if (!uploadRes.fileID) {
-            throw new Error('上传失败');
-          }
-
-          // 2. 获取云存储图片临时链接
-          wx.showLoading({
-            title: '获取图片链接...',
-          });
-
-          const fileRes = await wx.cloud.getTempFileURL({
-            fileList: [uploadRes.fileID]
-          });
-
-          if (!fileRes.fileList || !fileRes.fileList[0].tempFileURL) {
-            throw new Error('获取图片链接失败');
-          }
-
-          const imageUrl = fileRes.fileList[0].tempFileURL;
-          console.log('图片临时链接:', imageUrl);
-
-          // 保存图片 URL 到当前听写记录
-          app.globalData.currentImageUrl = imageUrl;
-
-          // 3. 调用OCR识别接口
-          wx.showLoading({
-            title: '识别文字中...',
-          });
-
-          const ocrRes = await wx.cloud.callContainer({
-            "config": {
-              "env": "prod-5g5ywun6829a4db5"
-            },
-            "path": "/txapi/ocr/handwriting",
-            "header": {
-              "X-WX-SERVICE": "word-dictation",
-              "content-type": "application/json",
-              "Authorization": `Bearer ${app.globalData.token}`
-            },
-            "method": "POST",
-            "data": {
-              "ImageUrl": imageUrl
-            }
-          });
-
-          wx.hideLoading();
-
-          // 根据新的数据格式处理OCR结果
-          if (ocrRes.data &&
-            ocrRes.data.code === 0 &&
-            ocrRes.data.data &&
-            ocrRes.data.data.TextDetections) {
-
-            // 提取所有文本检测结果
-            const detections = ocrRes.data.data.TextDetections;
-
-            // 不再过滤识别结果，保留所有检测到的文本
-            const allDetections = detections;
-
-            // 处理每一行文本，提取单词
-            let allWords = [];
-
-            allDetections.forEach(item => {
-              // 分割每行文本中的单词（按逗号、顿号、空格等分隔）
-              const lineWords = item.DetectedText
-                .split(/[,，、\s]/)  // 添加 \s 匹配空格
-                .map(word => word.trim())
-                .filter(word => word && word.length > 0);
-
-              allWords = allWords.concat(lineWords);
+      success: res => {
+        wx.hideLoading();
+        const tempFilePath = res.tempFiles[0].tempFilePath;
+        
+        // 使用editImage接口让用户编辑图片
+        wx.editImage({
+          src: tempFilePath, // 图片路径
+          success: async res => {
+            // 获取编辑后的图片路径
+            const editedFilePath = res.tempFilePath;
+            
+            wx.showLoading({
+              title: '处理编辑图片...',
+              mask: true
             });
+            
+            try {
+              // 1. 上传图片到云存储
+              const cloudPath = `ocr_images/${Date.now()}-${Math.random().toString(36).substr(2)}.png`;
 
-            // 移除重复单词
-            const uniqueWords = [...new Set(allWords)];
-
-            if (uniqueWords.length > 0) {
-              // 将单词列表设置到输入框
-              this.setData({
-                inputWords: uniqueWords.join('\n'),
-                wordCount: uniqueWords.length // 更新单词计数
+              wx.showLoading({
+                title: '上传图片中...',
               });
 
-              // 保存到本地缓存
-              this.saveInputWordsToStorage(uniqueWords.join('\n'));
-
-              wx.showToast({
-                title: `识别到${uniqueWords.length}个单词`,
-                icon: 'success'
+              const uploadRes = await wx.cloud.uploadFile({
+                cloudPath: cloudPath,
+                filePath: editedFilePath
               });
-            } else {
+
+              if (!uploadRes.fileID) {
+                throw new Error('上传失败');
+              }
+
+              // 2. 获取云存储图片临时链接
+              wx.showLoading({
+                title: '获取图片链接...',
+              });
+
+              const fileRes = await wx.cloud.getTempFileURL({
+                fileList: [uploadRes.fileID]
+              });
+
+              if (!fileRes.fileList || !fileRes.fileList[0].tempFileURL) {
+                throw new Error('获取图片链接失败');
+              }
+
+              const imageUrl = fileRes.fileList[0].tempFileURL;
+              console.log('图片临时链接:', imageUrl);
+
+              // 保存图片 URL 到当前听写记录
+              app.globalData.currentImageUrl = imageUrl;
+
+              // 3. 调用OCR识别接口
+              wx.showLoading({
+                title: '识别文字中...',
+              });
+
+              const ocrRes = await wx.cloud.callContainer({
+                "config": {
+                  "env": "prod-5g5ywun6829a4db5"
+                },
+                "path": "/txapi/ocr/handwriting",
+                "header": {
+                  "X-WX-SERVICE": "word-dictation",
+                  "content-type": "application/json",
+                  "Authorization": `Bearer ${app.globalData.token}`
+                },
+                "method": "POST",
+                "data": {
+                  "ImageUrl": imageUrl
+                }
+              });
+
+              wx.hideLoading();
+
+              // 根据新的数据格式处理OCR结果
+              if (ocrRes.data &&
+                ocrRes.data.code === 0 &&
+                ocrRes.data.data &&
+                ocrRes.data.data.TextDetections) {
+
+                // 提取所有文本检测结果
+                const detections = ocrRes.data.data.TextDetections;
+
+                // 不再过滤识别结果，保留所有检测到的文本
+                const allDetections = detections;
+
+                // 处理每一行文本，提取单词
+                let allWords = [];
+
+                allDetections.forEach(item => {
+                  // 分割每行文本中的单词（按逗号、顿号、空格等分隔）
+                  const lineWords = item.DetectedText
+                    .split(/[,，、\s]/)  // 添加 \s 匹配空格
+                    .map(word => word.trim())
+                    .filter(word => word && word.length > 0);
+
+                  allWords = allWords.concat(lineWords);
+                });
+
+                // 移除重复单词
+                const uniqueWords = [...new Set(allWords)];
+
+                if (uniqueWords.length > 0) {
+                  // 将单词列表设置到输入框
+                  this.setData({
+                    inputWords: uniqueWords.join('\n'),
+                    wordCount: uniqueWords.length // 更新单词计数
+                  });
+
+                  // 保存到本地缓存
+                  this.saveInputWordsToStorage(uniqueWords.join('\n'));
+
+                  wx.showToast({
+                    title: `识别到${uniqueWords.length}个单词`,
+                    icon: 'success'
+                  });
+                } else {
+                  wx.showToast({
+                    title: '未识别到有效单词',
+                    icon: 'none'
+                  });
+                }
+              } else {
+                console.error('OCR响应异常:', ocrRes);
+                wx.showToast({
+                  title: '识别失败: 服务响应异常',
+                  icon: 'none'
+                });
+              }
+            } catch (err) {
+              wx.hideLoading();
+              console.error('OCR识别失败:', err);
               wx.showToast({
-                title: '未识别到有效单词',
+                title: '识别失败: ' + err.message,
                 icon: 'none'
               });
             }
-          } else {
-            console.error('OCR响应异常:', ocrRes);
-            wx.showToast({
-              title: '识别失败: 服务响应异常',
-              icon: 'none'
-            });
+          },
+          fail: err => {
+            console.error('编辑图片失败，使用原始图片继续:', err);
+            // 编辑图片失败时，直接使用原始图片继续流程
+            this.processImageUpload(tempFilePath);
           }
-        } catch (err) {
-          wx.hideLoading();
-          console.error('OCR识别失败:', err);
-          wx.showToast({
-            title: '识别失败: ' + err.message,
-            icon: 'none'
-          });
-        }
+        });
       },
       fail: err => {
         wx.hideLoading();
         console.log('选择图片失败:', err);
       }
     });
+  },
+
+  // 处理图片上传和OCR识别
+  processImageUpload: async function(filePath) {
+    wx.showLoading({
+      title: '处理图片中...',
+      mask: true
+    });
+    
+    try {
+      // 1. 上传图片到云存储
+      const cloudPath = `ocr_images/${Date.now()}-${Math.random().toString(36).substr(2)}.png`;
+
+      wx.showLoading({
+        title: '上传图片中...',
+      });
+
+      const uploadRes = await wx.cloud.uploadFile({
+        cloudPath: cloudPath,
+        filePath: filePath
+      });
+
+      if (!uploadRes.fileID) {
+        throw new Error('上传失败');
+      }
+
+      // 2. 获取云存储图片临时链接
+      wx.showLoading({
+        title: '获取图片链接...',
+      });
+
+      const fileRes = await wx.cloud.getTempFileURL({
+        fileList: [uploadRes.fileID]
+      });
+
+      if (!fileRes.fileList || !fileRes.fileList[0].tempFileURL) {
+        throw new Error('获取图片链接失败');
+      }
+
+      const imageUrl = fileRes.fileList[0].tempFileURL;
+      console.log('图片临时链接:', imageUrl);
+
+      // 保存图片 URL 到当前听写记录
+      app.globalData.currentImageUrl = imageUrl;
+
+      // 3. 调用OCR识别接口
+      wx.showLoading({
+        title: '识别文字中...',
+      });
+
+      const ocrRes = await wx.cloud.callContainer({
+        "config": {
+          "env": "prod-5g5ywun6829a4db5"
+        },
+        "path": "/txapi/ocr/handwriting",
+        "header": {
+          "X-WX-SERVICE": "word-dictation",
+          "content-type": "application/json",
+          "Authorization": `Bearer ${app.globalData.token}`
+        },
+        "method": "POST",
+        "data": {
+          "ImageUrl": imageUrl
+        }
+      });
+
+      wx.hideLoading();
+
+      // 根据新的数据格式处理OCR结果
+      if (ocrRes.data &&
+        ocrRes.data.code === 0 &&
+        ocrRes.data.data &&
+        ocrRes.data.data.TextDetections) {
+
+        // 提取所有文本检测结果
+        const detections = ocrRes.data.data.TextDetections;
+
+        // 不再过滤识别结果，保留所有检测到的文本
+        const allDetections = detections;
+
+        // 处理每一行文本，提取单词
+        let allWords = [];
+
+        allDetections.forEach(item => {
+          // 分割每行文本中的单词（按逗号、顿号、空格等分隔）
+          const lineWords = item.DetectedText
+            .split(/[,，、\s]/)  // 添加 \s 匹配空格
+            .map(word => word.trim())
+            .filter(word => word && word.length > 0);
+
+          allWords = allWords.concat(lineWords);
+        });
+
+        // 移除重复单词
+        const uniqueWords = [...new Set(allWords)];
+
+        if (uniqueWords.length > 0) {
+          // 将单词列表设置到输入框
+          this.setData({
+            inputWords: uniqueWords.join('\n'),
+            wordCount: uniqueWords.length // 更新单词计数
+          });
+
+          // 保存到本地缓存
+          this.saveInputWordsToStorage(uniqueWords.join('\n'));
+
+          wx.showToast({
+            title: `识别到${uniqueWords.length}个单词`,
+            icon: 'success'
+          });
+        } else {
+          wx.showToast({
+            title: '未识别到有效单词',
+            icon: 'none'
+          });
+        }
+      } else {
+        console.error('OCR响应异常:', ocrRes);
+        wx.showToast({
+          title: '识别失败: 服务响应异常',
+          icon: 'none'
+        });
+      }
+    } catch (err) {
+      wx.hideLoading();
+      console.error('OCR识别失败:', err);
+      wx.showToast({
+        title: '识别失败: ' + err.message,
+        icon: 'none'
+      });
+    }
   },
 
   // 开始听写
