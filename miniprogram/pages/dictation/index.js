@@ -639,10 +639,8 @@ Page({
       content: '确定要结束当前听写吗？',
       success: res => {
         if (res.confirm) {
-          // 跳转到听写完成页面
-          wx.navigateTo({
-            url: '/pages/dictation-complete/index'
-          });
+          // 调用完成听写函数，传入参数表示跳过提示音
+          this.finishDictation(true);
         }
       }
     });
@@ -655,19 +653,8 @@ Page({
     // 停止音频播放
     this.stopAudioPlay();
     
-    // 获取用户输入的答案
-    const userAnswers = {};
+    // 获取单词列表
     const wordList = this.data.wordList || [];
-    
-    // 遍历所有单词，收集用户的答案
-    wordList.forEach((item, index) => {
-      const inputValue = this.data.answers[index] || '';
-      userAnswers[item.word] = {
-        word: item.word,
-        userInput: inputValue,
-        correct: this.isAnswerCorrect(item.word, inputValue)
-      };
-    });
     
     // 只有在非静默模式下才显示Toast提示
     if (!skipPrompts) {
@@ -682,15 +669,15 @@ Page({
     const recordData = {
       title: this.data.title || '未命名听写',
       date: new Date().getTime(),
-      words: wordList.map((item, index) => {
+      words: wordList.map(item => {
         return {
           word: item.word,
-          userInput: this.data.answers[index] || '',
-          correct: this.isAnswerCorrect(item.word, this.data.answers[index] || '')
+          userInput: '', // 不记录用户输入
+          correct: false // 不判断正确性
         };
       }),
       totalWords: wordList.length,
-      correctCount: Object.values(userAnswers).filter(item => item.correct).length,
+      correctCount: 0, // 不记录正确数量
       serial: Date.now().toString() // 添加序列号到这里，避免多次生成
     };
     
@@ -701,11 +688,14 @@ Page({
       // 获取现有记录
       const records = wx.getStorageSync('dictationRecords') || [];
       
-      // 添加新记录并生成唯一标识
+      // 添加新记录到记录列表最前面
       records.unshift(recordData);
       
       // 保存回本地存储
       wx.setStorageSync('dictationRecords', records);
+      
+      // 同时保存当前听写记录作为最新记录
+      wx.setStorageSync('currentDictationRecord', recordData);
       
       console.log('听写记录已保存');
       
@@ -722,7 +712,7 @@ Page({
       if (skipPrompts) {
         // 直接跳转到核对页面
         wx.navigateTo({
-          url: `/pages/dictation-complete/index?serial=${recordData.serial}`,
+          url: '/pages/dictation-complete/index',
           success: () => {
             console.log('成功跳转到核对听写页面');
           },
@@ -743,7 +733,7 @@ Page({
         
         // 跳转到核对页面
         wx.navigateTo({
-          url: `/pages/dictation-complete/index?serial=${recordData.serial}`,
+          url: '/pages/dictation-complete/index',
           success: () => {
             console.log('成功跳转到核对听写页面');
           },
@@ -815,6 +805,11 @@ Page({
             this.completionAudioContext.play();
           } else {
             console.log('完成提示音已播放3次，停止播放');
+            // 播放完3次后执行回调
+            if (typeof callback === 'function') {
+              console.log('执行完成提示音播放结束回调');
+              callback();
+            }
           }
         });
         
@@ -826,11 +821,21 @@ Page({
         // 监听停止事件
         this.completionAudioContext.onStop(() => {
           console.log('完成提示音被停止');
+          // 如果音频被手动停止，也应该调用回调
+          if (typeof callback === 'function') {
+            console.log('完成提示音被停止，执行回调');
+            callback();
+          }
         });
         
         // 播放错误处理
         this.completionAudioContext.onError((err) => {
           console.error('播放完成提示音失败:', err);
+          // 出错时也调用回调，确保能继续后续操作
+          if (typeof callback === 'function') {
+            console.log('完成提示音播放出错，执行回调');
+            callback();
+          }
         });
         
         // 开始播放
@@ -838,6 +843,11 @@ Page({
       },
       fail: (err) => {
         console.error('完成提示音文件不存在:', err);
+        // 如果文件不存在，直接调用回调
+        if (typeof callback === 'function') {
+          console.log('完成提示音文件不存在，直接执行回调');
+          callback();
+        }
       }
     });
   },

@@ -43,24 +43,43 @@ Page({
   },
 
   onLoad: function (options) {
-    // 获取serial参数
-    if (options.serial) {
-      // 从本地存储中获取听写记录
-      const records = wx.getStorageSync('dictationRecords') || [];
-      const record = records.find(r => r.serial === options.serial);
+    // 从本地缓存中获取当前听写记录
+    const currentRecord = wx.getStorageSync('currentDictationRecord');
+    
+    if (currentRecord) {
+      // 找到记录，设置到数据中
+      this.setData({
+        recordData: currentRecord,
+        wordList: Array.isArray(currentRecord.words) ? currentRecord.words.map(item =>
+          typeof item === 'object' ? item.word : item) : [],
+        dictationTitle: currentRecord.title || '未命名听写'
+      });
 
-      if (record) {
-        // 找到记录，设置到数据中
+      console.log('加载当前听写记录数据:', currentRecord);
+      console.log('解析后的单词列表:', this.data.wordList);
+
+      // 如果有图片URL，显示图片
+      if (app.globalData.currentImageUrl) {
         this.setData({
-          recordData: record,
-          wordList: Array.isArray(record.words) ? record.words.map(item =>
-            typeof item === 'object' ? item.word : item) : [],
-          dictationTitle: record.title || '未命名听写'
+          imageUrl: app.globalData.currentImageUrl
         });
-
-        console.log('加载记录数据:', record);
+      }
+    } else {
+      // 如果找不到当前记录，尝试从dictationRecords中获取最新的记录
+      const records = wx.getStorageSync('dictationRecords') || [];
+      if (records.length > 0) {
+        const latestRecord = records[0]; // 最新的记录在数组最前面
+        
+        this.setData({
+          recordData: latestRecord,
+          wordList: Array.isArray(latestRecord.words) ? latestRecord.words.map(item =>
+            typeof item === 'object' ? item.word : item) : [],
+          dictationTitle: latestRecord.title || '未命名听写'
+        });
+        
+        console.log('加载最新听写记录数据:', latestRecord);
         console.log('解析后的单词列表:', this.data.wordList);
-
+        
         // 如果有图片URL，显示图片
         if (app.globalData.currentImageUrl) {
           this.setData({
@@ -68,7 +87,7 @@ Page({
           });
         }
       } else {
-        console.error('未找到匹配的听写记录:', options.serial);
+        console.error('未找到听写记录');
         wx.showToast({
           title: '未找到听写记录',
           icon: 'none'
@@ -77,15 +96,6 @@ Page({
           wx.navigateBack();
         }, 1500);
       }
-    } else {
-      console.error('缺少serial参数');
-      wx.showToast({
-        title: '参数错误',
-        icon: 'none'
-      });
-      setTimeout(() => {
-        wx.navigateBack();
-      }, 1500);
     }
   },
 

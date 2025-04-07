@@ -17,9 +17,6 @@ Page({
 
     // 加载最近输入的单词
     this.loadRecentWords();
-
-    // 清理过期的音频文件
-    this.cleanupAudioFiles();
   },
 
   onShow: function () {
@@ -45,62 +42,6 @@ Page({
       inputWords,
       wordCount
     });
-
-    // 如果有缓存的单词，为其预生成语音
-    if (inputWords.trim()) {
-      const words = inputWords.split(/\n/).map(word => word.trim()).filter(word => word);
-      this.preloadVoicesForCachedWords(words);
-    }
-  },
-
-  // 为缓存的单词预加载语音
-  preloadVoicesForCachedWords: function (words) {
-    if (!words || words.length === 0) return;
-
-    console.log('为缓存的单词预加载语音:', words);
-
-    // 处理单词格式，支持英文-中文格式
-    const formattedWords = words.map(item => {
-      const parts = item.split(/[-—_:：]+/).map(part => part.trim());
-      if (parts.length > 1) {
-        return {
-          word: parts[0],
-          translation: parts.slice(1).join(', ')
-        };
-      }
-      return {
-        word: item,
-        translation: ''
-      };
-    });
-
-    // 检查已有多少单词有缓存语音
-    let existingVoiceCount = 0;
-    for (const item of formattedWords) {
-      const cachedVoiceUrl = this.findCachedVoiceFile(item.word);
-      if (cachedVoiceUrl) {
-        existingVoiceCount++;
-      }
-    }
-
-    if (existingVoiceCount === formattedWords.length) {
-      console.log('所有单词都已有缓存语音，无需预加载');
-      return;
-    }
-
-    console.log(`${formattedWords.length - existingVoiceCount}个单词需要预加载语音`);
-
-    // 异步生成语音，不阻塞UI
-    setTimeout(() => {
-      this.generateWordVoices(formattedWords)
-        .then(wordsWithVoices => {
-          const successCount = wordsWithVoices.filter(w => w.voiceUrl).length;
-          console.log(`缓存单词的语音已预加载完成，成功: ${successCount}/${formattedWords.length}`);
-        })
-        .catch(error => {
-          console.error('预加载语音失败:', error);
-        });
-    }, 1000); // 延迟1秒执行，避免与其他初始化操作冲突
   },
 
   // 加载最近输入的单词
@@ -250,16 +191,7 @@ Page({
   // 生成单个单词的语音
   generateSingleVoice: async function (wordItem, isEnglish) {
     try {
-      // 先查找是否有缓存的语音文件
-      const cachedVoiceUrl = this.findCachedVoiceFile(wordItem.word);
-      if (cachedVoiceUrl) {
-        console.log(`使用缓存的语音文件: ${wordItem.word}`);
-        wordItem.voiceUrl = cachedVoiceUrl;
-        return cachedVoiceUrl;
-      }
-
-      // 没有缓存，调用接口生成新的语音
-      console.log(`生成新的语音文件: ${wordItem.word}`);
+      console.log(`生成语音文件: ${wordItem.word}`);
 
       const response = await wx.cloud.callContainer({
         "config": {
@@ -276,7 +208,7 @@ Page({
           "Text": wordItem.word,
           "SessionId": `session-${Date.now()}`, // 使用时间戳确保每次请求唯一
           "Volume": 1,
-          "Speed": -2, // 稍微放慢速度，便于听写
+          "Speed": 0, // 稍微放慢速度，便于听写
           "ProjectId": 0,
           "ModelType": 1,
           "VoiceType": isEnglish ? 101051 : 301004, // 英文用501009，中文用501001
@@ -293,7 +225,7 @@ Page({
         // 获取音频Base64数据
         const audioBase64 = response.data.data.Audio;
 
-        // 将Base64转换为永久文件，使用单词作为文件名前缀
+        // 将Base64转换为临时文件，每次都生成新的文件
         const wordPrefix = wordItem.word.replace(/[^a-zA-Z0-9]/g, '').substring(0, 10);
         const fileName = `${wordPrefix}_${Date.now()}.mp3`;
 
@@ -301,10 +233,6 @@ Page({
 
         // 将语音URL保存到单词对象中
         wordItem.voiceUrl = filePath;
-
-        // 同时更新最近单词列表中的语音URL
-        this.updateRecentWordVoiceUrl(wordItem.word, filePath);
-
         return filePath;
       } else {
         console.error('语音合成接口返回错误:', response);
@@ -321,29 +249,6 @@ Page({
       // 出错时不中断整个流程，返回null表示没有语音
       wordItem.voiceUrl = null;
       return null;
-    }
-  },
-
-  // 更新最近单词列表中的语音URL
-  updateRecentWordVoiceUrl: function (word, voiceUrl) {
-    if (!word || !voiceUrl) return;
-
-    // 获取最近单词列表
-    const recentWords = wx.getStorageSync('recent_words') || [];
-
-    // 查找匹配的单词
-    const matchIndex = recentWords.findIndex(item =>
-      item.word.toLowerCase() === word.toLowerCase());
-
-    if (matchIndex !== -1) {
-      // 更新语音URL
-      recentWords[matchIndex].voiceUrl = voiceUrl;
-
-      // 保存回存储
-      wx.setStorageSync('recent_words', recentWords);
-
-      // 更新UI
-      this.setData({ recentWords });
     }
   },
 
@@ -863,7 +768,7 @@ Page({
       };
     });
 
-    // 生成语音，然后开始听写
+    // 生成语音，然后开始听写（不再使用缓存）
     this.generateWordVoices(formattedWords)
       .then(wordsWithVoices => {
         // 检查是否所有单词都有语音URL
@@ -917,30 +822,11 @@ Page({
 
     console.log('开始处理单词语音，共计', words.length, '个单词');
 
-    // 先检查每个单词是否有缓存的语音文件
-    for (const item of words) {
-      const cachedVoiceUrl = this.findCachedVoiceFile(item.word);
-      if (cachedVoiceUrl) {
-        console.log(`使用缓存的语音文件: ${item.word}`);
-        item.voiceUrl = cachedVoiceUrl;
-      }
-    }
-
-    // 筛选出没有语音URL的单词，需要重新生成
-    const wordsNeedVoice = words.filter(item => !item.voiceUrl);
-
-    console.log('需要生成语音的单词数量:', wordsNeedVoice.length);
-
-    if (wordsNeedVoice.length === 0) {
-      console.log('所有单词都使用缓存的语音文件');
-      return words;
-    }
-
     // 将单词分为英文和中文两组
     const englishWords = [];
     const chineseWords = [];
 
-    wordsNeedVoice.forEach(item => {
+    words.forEach(item => {
       const isEnglish = this.isEnglish(item.word);
       if (isEnglish) {
         englishWords.push(item);
@@ -981,14 +867,11 @@ Page({
     }
   },
 
-  // 将Base64转换为永久文件
+  // 将Base64转换为临时文件（不再永久保存）
   base64ToTempFile: function (base64Data, fileName) {
     return new Promise((resolve, reject) => {
-      // 处理文件名，去除中文和特殊字符
-      const safeFileName = this.getSafeFileName(fileName);
-
-      // 使用永久目录保存文件
-      const filePath = `${wx.env.USER_DATA_PATH}/${safeFileName}`;
+      // 使用临时目录保存文件，不再使用永久目录
+      const filePath = `${wx.env.USER_DATA_PATH}/${fileName}`;
       const buffer = wx.base64ToArrayBuffer(base64Data);
 
       const fs = wx.getFileSystemManager();
@@ -998,16 +881,7 @@ Page({
         data: buffer,
         encoding: 'binary',
         success: () => {
-          console.log('语音文件已永久保存:', filePath);
-
-          // 将文件路径记录到全局存储
-          const savedAudioFiles = wx.getStorageSync('saved_audio_files') || {};
-          savedAudioFiles[safeFileName] = {
-            path: filePath,
-            timestamp: Date.now()
-          };
-          wx.setStorageSync('saved_audio_files', savedAudioFiles);
-
+          console.log('语音文件已保存:', filePath);
           resolve(filePath);
         },
         fail: (error) => {
@@ -1016,18 +890,6 @@ Page({
         }
       });
     });
-  },
-
-  // 生成安全的文件名（不含中文和特殊字符）
-  getSafeFileName: function (originalName) {
-    // 提取原文件名的扩展名
-    const ext = originalName.split('.').pop();
-
-    // 生成随机字符串作为文件名
-    const randomName = `audio_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
-
-    // 返回安全的文件名
-    return `${randomName}.${ext}`;
   },
 
   generateVoice: function () {
@@ -1057,110 +919,6 @@ Page({
         "EmotionIntensity": 100
       }
     })
-  },
-
-  // 清理过期的音频文件
-  cleanupAudioFiles: function () {
-    // 获取保存的音频文件列表
-    const savedAudioFiles = wx.getStorageSync('saved_audio_files') || {};
-    const currentTime = Date.now();
-    const MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7天的毫秒数
-    const MAX_FILES = 200; // 最多保留200个文件
-
-    // 将文件按时间戳排序
-    const sortedFiles = Object.entries(savedAudioFiles)
-      .map(([fileName, fileInfo]) => ({
-        fileName,
-        path: fileInfo.path,
-        timestamp: fileInfo.timestamp
-      }))
-      .sort((a, b) => b.timestamp - a.timestamp); // 最新的在前面
-
-    // 需要删除的文件
-    const filesToDelete = [];
-
-    // 1. 标记超过MAX_FILES数量限制的旧文件
-    if (sortedFiles.length > MAX_FILES) {
-      filesToDelete.push(...sortedFiles.slice(MAX_FILES));
-    }
-
-    // 2. 标记超过最大保存时间的文件
-    const remainingFiles = sortedFiles.slice(0, MAX_FILES);
-    const expiredFiles = remainingFiles.filter(
-      file => (currentTime - file.timestamp) > MAX_AGE
-    );
-    filesToDelete.push(...expiredFiles);
-
-    // 如果有文件需要删除
-    if (filesToDelete.length > 0) {
-      const fs = wx.getFileSystemManager();
-      const updatedSavedFiles = { ...savedAudioFiles };
-
-      console.log(`清理 ${filesToDelete.length} 个过期的音频文件`);
-
-      // 逐个删除文件
-      filesToDelete.forEach(file => {
-        try {
-          fs.access({
-            path: file.path,
-            success: () => {
-              // 文件存在，删除
-              fs.unlink({
-                filePath: file.path,
-                success: () => {
-                  console.log('成功删除过期音频文件:', file.path);
-                  // 从记录中移除
-                  delete updatedSavedFiles[file.fileName];
-                },
-                fail: (err) => {
-                  console.error('删除音频文件失败:', err);
-                }
-              });
-            },
-            fail: () => {
-              // 文件不存在，直接从记录中移除
-              console.log('音频文件不存在，移除记录:', file.path);
-              delete updatedSavedFiles[file.fileName];
-            }
-          });
-        } catch (error) {
-          console.error('删除音频文件出错:', error);
-          // 删除失败也从记录中移除
-          delete updatedSavedFiles[file.fileName];
-        }
-      });
-
-      // 更新存储的文件记录
-      wx.setStorageSync('saved_audio_files', updatedSavedFiles);
-    } else {
-      console.log('没有过期的音频文件需要清理');
-    }
-  },
-
-  // 根据单词查找已保存的音频文件
-  findCachedVoiceFile: function (word) {
-    // 获取保存的音频文件记录
-    const savedAudioFiles = wx.getStorageSync('saved_audio_files') || {};
-
-    // 检查最近单词列表中是否有匹配的音频
-    const recentWords = this.data.recentWords || [];
-    const matchedRecentWord = recentWords.find(item =>
-      item.word.toLowerCase() === word.toLowerCase() && item.voiceUrl);
-
-    if (matchedRecentWord && matchedRecentWord.voiceUrl) {
-      // 检查文件是否存在
-      try {
-        const fs = wx.getFileSystemManager();
-        fs.accessSync(matchedRecentWord.voiceUrl);
-        // 文件存在，返回URL
-        return matchedRecentWord.voiceUrl;
-      } catch (e) {
-        // 文件不存在，忽略
-      }
-    }
-
-    // 如果没有找到匹配的音频文件，返回null
-    return null;
   },
 
 }) 
