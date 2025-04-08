@@ -40,7 +40,11 @@
   font-weight: bold;
   color: #43A047;
 }
-
+.input-title-tip {
+  font-size: 28rpx;
+  font-weight: normal;
+  color: #333;
+}
 .word-counter {
   font-size: 28rpx;
   color: #888;

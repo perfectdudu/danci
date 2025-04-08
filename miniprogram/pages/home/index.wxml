@@ -3,7 +3,7 @@
   <view class="input-area">
     <!-- 输入框标题和计数 -->
     <view class="input-header">
-      <view class="input-title">单词输入</view>
+      <view class="input-title">单词输入<text class="input-title-tip">（支持中文及英文）</text></view>
       <view class="word-counter {{wordCount > 90 ? 'word-counter-warning' : ''}}">{{wordCount}}/100</view>
     </view>
     
