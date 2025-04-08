@@ -362,10 +362,10 @@ Page({
     });
     
     // 显示切换提示
-    wx.showToast({
-      title: filterType === 'all' ? '显示全部单词' : '仅显示错误单词',
-      icon: 'none',
-      duration: 1000
-    });
+    // wx.showToast({
+    //   title: filterType === 'all' ? '显示全部单词' : '仅显示错误单词',
+    //   icon: 'none',
+    //   duration: 1000
+    // });
   }
 }); 

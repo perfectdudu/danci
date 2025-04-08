@@ -40,96 +40,121 @@
   position: relative;
 }
 
-/* 波浪动画 */
+/* 波浪动画容器 */
 .wave-container {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 1200rpx;
-  width: 100vw;
-  margin: 0 -20rpx;
-  padding: 0;
+  min-height: 400rpx;
+  width: 100%;
+  padding: 0 20px;
   box-sizing: border-box;
-  overflow-x: hidden;
-  overflow-y: hidden;
   position: relative;
 }
 
-.wave {
-  width: 25rpx;
+/* 正弦波容器 */
+.sine-wave-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 280rpx;
+}
+
+/* 正弦波元素 */
+.sine-wave {
+  width: 16rpx;
+  margin: 0 15rpx;
+  border-radius: 10rpx;
+  background: linear-gradient(to top, #42b983, #4CAF50);
+  transform-origin: 50% 50%;
+}
+
+/* 不同的基础高度 */
+.sine-wave1 {
   height: 120rpx;
-  margin: 0 12rpx;
-  border-radius: 12rpx;
-  transition: all 0.05s;
+  animation-delay: -0.6s;
 }
 
-/* 使用渐变色波浪 */
-.wave1 {
-  background: linear-gradient(to top, #00c6fb, #005bea);
-  animation-duration: 1.5s;
-  animation-delay: 0.1s;
+.sine-wave2 {
+  height: 80rpx;
+  animation-delay: -0.9s;
 }
 
-.wave2 {
-  background: linear-gradient(to top, #f093fb, #f5576c);
-  animation-duration: 1.7s;
-  animation-delay: 0.2s;
+.sine-wave3 {
+  height: 160rpx;
+  animation-delay: -0.3s;
 }
 
-.wave3 {
-  background: linear-gradient(to top, #4facfe, #00f2fe);
-  animation-duration: 1.6s;
-  animation-delay: 0.15s;
+.sine-wave4 {
   height: 100rpx;
+  animation-delay: -1.1s;
 }
 
-.wave4 {
-  background: linear-gradient(to top, #43e97b, #38f9d7);
-  animation-duration: 1.9s;
-  animation-delay: 0.25s;
+.sine-wave5 {
+  height: 140rpx;
+  animation-delay: -0.4s;
 }
 
-.wave5 {
-  background: linear-gradient(to top, #fa709a, #fee140);
-  animation-duration: 1.8s;
-  animation-delay: 0.1s;
-}
-
-.wave6 {
-  background: linear-gradient(to top, #a18cd1, #fbc2eb);
-  animation-duration: 1.75s;
-  animation-delay: 0.15s;
+.sine-wave6 {
   height: 90rpx;
+  animation-delay: -0.8s;
 }
 
-.wave7 {
-  background: linear-gradient(to top, #84fab0, #8fd3f4);
-  animation-duration: 1.65s;
-  animation-delay: 0.2s;
+/* 播放状态的波浪动画 - 每个元素使用不同的动画 */
+.wave-container.playing .sine-wave1 {
+  animation: sine-wave-1 1.3s ease-in-out infinite;
 }
 
-.wave8 {
-  background: linear-gradient(to top, #6a11cb, #2575fc);
-  animation-duration: 1.85s;
-  animation-delay: 0.05s;
+.wave-container.playing .sine-wave2 {
+  animation: sine-wave-2 1.7s ease-in-out infinite;
 }
 
-.wave-container.playing .wave {
-  animation-name: wave-animation;
-  animation-iteration-count: infinite;
-  animation-timing-function: ease-in-out;
+.wave-container.playing .sine-wave3 {
+  animation: sine-wave-3 1.5s ease-in-out infinite;
 }
 
-@keyframes wave-animation {
-  0% {
-    height: 120rpx;
-  }
-  50% {
-    height: 680rpx;
-  }
-  100% {
-    height: 120rpx;
-  }
+.wave-container.playing .sine-wave4 {
+  animation: sine-wave-4 1.9s ease-in-out infinite;
+}
+
+.wave-container.playing .sine-wave5 {
+  animation: sine-wave-5 1.4s ease-in-out infinite;
+}
+
+.wave-container.playing .sine-wave6 {
+  animation: sine-wave-6 1.6s ease-in-out infinite;
+}
+
+/* 每个波浪元素的独特动画 */
+@keyframes sine-wave-1 {
+  0%, 100% { height: 120rpx; }
+  50% { height: 220rpx; }
+}
+
+@keyframes sine-wave-2 {
+  0%, 100% { height: 80rpx; }
+  50% { height: 190rpx; }
+}
+
+@keyframes sine-wave-3 {
+  0%, 100% { height: 160rpx; }
+  50% { height: 240rpx; }
+}
+
+@keyframes sine-wave-4 {
+  0%, 100% { height: 100rpx; }
+  50% { height: 200rpx; }
+}
+
+@keyframes sine-wave-5 {
+  0%, 100% { height: 140rpx; }
+  50% { height: 230rpx; }
+}
+
+@keyframes sine-wave-6 {
+  0%, 100% { height: 90rpx; }
+  50% { height: 180rpx; }
 }
 
 /* 播放次数指示点 */

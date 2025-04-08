@@ -547,9 +547,7 @@ Page({
           });
           
           // 延迟后自动完成听写
-          setTimeout(() => {
-            this.autoFinishDictation();
-          }, 2000);
+          this.autoFinishDictation();
         }
       }
     } else {
@@ -564,9 +562,7 @@ Page({
       });
       
       // 延迟后自动完成听写
-      setTimeout(() => {
-        this.autoFinishDictation();
-      }, 2000);
+      this.autoFinishDictation();
     }
   },
 
@@ -886,14 +882,14 @@ Page({
         console.log(`完成提示音播放第${this.completionPlayCount}次结束`);
         
         // 如果已经播放了2次，则跳转到完成页面
-        if (this.completionPlayCount >= 2) {
+        if (this.completionPlayCount >= 1) {
           console.log('已播放2次完成提示音，准备导航到完成页面');
           
           // 延迟1秒后导航到完成页面
           setTimeout(() => {
             // 导航到完成页面，指定自动完成模式
             this.navigateToCompletePage('auto');
-          }, 1000);
+          }, 300);
         } else {
           // 还未播放够2次，延迟300ms后继续播放
           console.log('延迟300ms后播放第二次完成提示音');
