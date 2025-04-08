@@ -33,18 +33,23 @@
         <view class="wave wave6"></view>
         <view class="wave wave7"></view>
         <view class="wave wave8"></view>
+        <view class="wave wave1"></view>
+        <view class="wave wave2"></view>
       </view>
     </view>
     
-    <view class="control-section">
+    <!-- 控制按钮区域 - 放在右侧悬浮，上下排列 -->
+    <view class="floating-controls" data-area="buttons">
       <!-- 播放控制按钮 -->
-      <view class="control-button" bindtap="playWord">
+      <view class="control-button" data-type="play" catchtap="playWord">
         <image src="/images/icons/{{isPlaying ? '暂停选中.png' : '播放选中.png'}}" mode="aspectFit" class="control-icon"></image>
+        <text class="button-text">{{isPlaying ? '暂停' : '播放'}}</text>
       </view>
       
       <!-- 结束听写按钮 -->
-      <view class="control-button" bindtap="confirmExit">
+      <view class="control-button end-button" data-type="exit" catchtap="confirmExit">
         <image src="/images/icons/结束.png" mode="aspectFit" class="control-icon"></image>
+        <text class="button-text">结束</text>
       </view>
     </view>
   </view>

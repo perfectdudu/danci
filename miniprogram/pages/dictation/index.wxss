@@ -3,7 +3,7 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
+  background-color: #f0f9ff;
   position: relative;
   overflow: hidden;
 }
@@ -24,7 +24,8 @@
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 60rpx 40rpx;
+  padding: 0;
+  overflow: hidden;
 }
 
 /* 音频波浪动画容器 */
@@ -36,6 +37,7 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 20px;
+  position: relative;
 }
 
 /* 波浪动画 */
@@ -43,18 +45,73 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 500rpx;
-  width: 600rpx;
-  margin-bottom: 40rpx;
+  min-height: 1200rpx;
+  width: 100vw;
+  margin: 0 -20rpx;
+  padding: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  position: relative;
 }
 
 .wave {
-  background-color: #42b983;
-  width: 20rpx;
-  height: 60rpx;
-  margin: 0 15rpx;
-  border-radius: 10rpx;
+  width: 25rpx;
+  height: 120rpx;
+  margin: 0 12rpx;
+  border-radius: 12rpx;
   transition: all 0.05s;
+}
+
+/* 使用渐变色波浪 */
+.wave1 {
+  background: linear-gradient(to top, #00c6fb, #005bea);
+  animation-duration: 1.5s;
+  animation-delay: 0.1s;
+}
+
+.wave2 {
+  background: linear-gradient(to top, #f093fb, #f5576c);
+  animation-duration: 1.7s;
+  animation-delay: 0.2s;
+}
+
+.wave3 {
+  background: linear-gradient(to top, #4facfe, #00f2fe);
+  animation-duration: 1.6s;
+  animation-delay: 0.15s;
+  height: 100rpx;
+}
+
+.wave4 {
+  background: linear-gradient(to top, #43e97b, #38f9d7);
+  animation-duration: 1.9s;
+  animation-delay: 0.25s;
+}
+
+.wave5 {
+  background: linear-gradient(to top, #fa709a, #fee140);
+  animation-duration: 1.8s;
+  animation-delay: 0.1s;
+}
+
+.wave6 {
+  background: linear-gradient(to top, #a18cd1, #fbc2eb);
+  animation-duration: 1.75s;
+  animation-delay: 0.15s;
+  height: 90rpx;
+}
+
+.wave7 {
+  background: linear-gradient(to top, #84fab0, #8fd3f4);
+  animation-duration: 1.65s;
+  animation-delay: 0.2s;
+}
+
+.wave8 {
+  background: linear-gradient(to top, #6a11cb, #2575fc);
+  animation-duration: 1.85s;
+  animation-delay: 0.05s;
 }
 
 .wave-container.playing .wave {
@@ -63,57 +120,15 @@
   animation-timing-function: ease-in-out;
 }
 
-.wave1 {
-  animation-duration: 0.8s;
-  animation-delay: 0.1s;
-}
-
-.wave2 {
-  animation-duration: 0.7s;
-  animation-delay: 0.2s;
-}
-
-.wave3 {
-  animation-duration: 0.6s;
-  animation-delay: 0.15s;
-  height: 80rpx;
-}
-
-.wave4 {
-  animation-duration: 0.7s;
-  animation-delay: 0.25s;
-}
-
-.wave5 {
-  animation-duration: 0.8s;
-  animation-delay: 0.1s;
-}
-
-.wave6 {
-  animation-duration: 0.75s;
-  animation-delay: 0.15s;
-  height: 70rpx;
-}
-
-.wave7 {
-  animation-duration: 0.65s;
-  animation-delay: 0.2s;
-}
-
-.wave8 {
-  animation-duration: 0.85s;
-  animation-delay: 0.05s;
-}
-
 @keyframes wave-animation {
   0% {
-    height: 60rpx;
+    height: 120rpx;
   }
   50% {
-    height: 280rpx;
+    height: 680rpx;
   }
   100% {
-    height: 60rpx;
+    height: 120rpx;
   }
 }
 
@@ -121,48 +136,73 @@
 .play-counter {
   display: flex;
   justify-content: center;
-  margin-top: 30rpx;
+  margin: 60rpx 0 20rpx;
+  z-index: 10;
 }
 
 .dot {
-  width: 24rpx;
-  height: 24rpx;
+  width: 30rpx;
+  height: 30rpx;
   border-radius: 50%;
   background-color: #e0e0e0;
   margin: 0 16rpx;
   transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .dot.active {
   background-color: #42b983;
-  transform: scale(1.2);
+  transform: scale(1.3);
+  box-shadow: 0 2px 10px rgba(66, 185, 131, 0.4);
 }
 
-/* 控制按钮区域 */
-.control-section {
+/* 控制按钮区域 - 右侧悬浮 */
+.floating-controls {
+  position: fixed;
+  right: 0;
+  bottom: 50px;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  margin-top: 40px;
+  flex-direction: column;
+  gap: 20px;
+  z-index: 100;
 }
 
+/* 控制按钮样式 */
 .control-button {
-  margin: 0 30px;
-  width: 100px;
-  height: 100px;
+  width: 160px;
+  height: 50px;
   display: flex;
-  justify-content: center;
+  flex-direction: row;
+  justify-content: flex-start;
   align-items: center;
   background-color: #ffffff;
-  border-radius: 50%;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  border-radius: 25px 0 0 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding-left: 12px;
+  transform: translateX(110px);
+}
+
+/* 确保点击时不会有任何变化 */
+.control-button:active {
+  transform: translateX(120px);
+}
+
+.end-button {
+  background-color: #fff0f0;
 }
 
 .control-icon {
-  width: 70px;
-  height: 70px;
+  width: 32px;
+  height: 32px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.button-text {
+  font-size: 16px;
+  color: #333;
+  font-weight: 500;
+  opacity: 0;
 }
 
 .button-inner {
@@ -182,15 +222,6 @@
 
 .play-button.active {
   background: linear-gradient(to right, #3da775, #429e46);
-}
-
-.end-button {
-  background: linear-gradient(to right, #ff9a9e, #ff6b6b);
-}
-
-.end-button:active {
-  transform: scale(0.97);
-  box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.1);
 }
 
 /* 隐藏原有的头部 */
@@ -360,29 +391,6 @@
   width: 90%;
   position: relative;
   box-sizing: border-box;
-}
-
-/* 添加卡通风格装饰 */
-/* .player-controls::before {
-  content: "";
-  position: absolute;
-  top: -15rpx;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 30rpx;
-  height: 30rpx;
-  background-color: #4CAF50;
-  border-radius: 50%;
-  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
-} */
-
-.control-button:active {
-  transform: none;
-}
-
-/* 删除脉动动画 */
-.play-button.active {
-  background-color: transparent;
 }
 
 .input-area {

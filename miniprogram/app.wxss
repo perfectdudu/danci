@@ -15,7 +15,10 @@
   height: 44px !important;
   background-color: #4CAF50 !important;
 }
-
+.van-nav-bar__text--hover {
+  background-color: #4CAF50 !important;
+  opacity: 0.8 !important;
+}
 .van-nav-bar__content {
   height: 44px !important;
 }

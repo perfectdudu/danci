@@ -89,12 +89,14 @@ Page({
     });
   },
 
-  // 分享结果
+  // 分享给朋友
   onShareAppMessage: function() {
-    return {
-      title: `我在${this.data.dictationTitle}听写中获得了${this.data.correctRate}%的正确率！`,
-      path: '/pages/index/index'
-    };
+    return app.shareAppMessage();
+  },
+  
+  // 分享到朋友圈
+  onShareTimeline: function() {
+    return app.shareTimeline();
   },
 
   // 解析GMT格式时间

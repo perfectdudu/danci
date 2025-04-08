@@ -652,7 +652,7 @@ Page({
                 "config": {
                   "env": "prod-5g5ywun6829a4db5"
                 },
-                "path": "/txapi/ocr/handwriting",
+                "path": "/txapi/ocr/generalaccurate",
                 "header": {
                   "X-WX-SERVICE": "word-dictation",
                   "content-type": "application/json",
@@ -796,7 +796,7 @@ Page({
         "config": {
           "env": "prod-5g5ywun6829a4db5"
         },
-        "path": "/txapi/ocr/handwriting",
+        "path": "/txapi/ocr/generalaccurate",
         "header": {
           "X-WX-SERVICE": "word-dictation",
           "content-type": "application/json",
@@ -1073,4 +1073,13 @@ Page({
     })
   },
 
+  // 分享给朋友
+  onShareAppMessage: function() {
+    return app.shareAppMessage();
+  },
+  
+  // 分享到朋友圈
+  onShareTimeline: function() {
+    return app.shareTimeline();
+  }
 }) 

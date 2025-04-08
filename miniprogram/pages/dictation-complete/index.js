@@ -694,5 +694,15 @@ Page({
         "pic_url": picUrl
       }
     });
+  },
+
+  // 分享给朋友
+  onShareAppMessage: function() {
+    return app.shareAppMessage();
+  },
+  
+  // 分享到朋友圈
+  onShareTimeline: function() {
+    return app.shareTimeline();
   }
 }) 

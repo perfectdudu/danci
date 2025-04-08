@@ -38,4 +38,46 @@ App({
       console.error(err)
     }
   },
+  
+  // 全局分享给朋友方法
+  shareAppMessage: function() {
+    return {
+      title: "我正在使用kop的AI听写助手，推荐给你！",
+      path: '/pages/home/index',
+      imageUrl: 'https://hyyg-1255426464.cos.ap-guangzhou.myqcloud.com/nezha.png',
+      success: function(res) {
+        // 分享成功的回调
+        wx.showToast({
+          title: '分享成功',
+          icon: 'success',
+          duration: 1500
+        });
+      },
+      fail: function(res) {
+        // 分享失败的回调
+        console.error('分享失败:', res);
+      }
+    };
+  },
+  
+  // 全局分享到朋友圈方法
+  shareTimeline: function(title, query = '') {
+    return {
+      title: "我正在使用kop的AI听写助手，推荐给你！",
+      path: '/pages/home/index',
+      imageUrl: 'https://hyyg-1255426464.cos.ap-guangzhou.myqcloud.com/nezha.png',
+      success: function(res) {
+        // 分享成功的回调
+        wx.showToast({
+          title: '分享成功',
+          icon: 'success',
+          duration: 1500
+        });
+      },
+      fail: function(res) {
+        // 分享失败的回调
+        console.error('分享失败:', res);
+      }
+    };
+  }
 });
