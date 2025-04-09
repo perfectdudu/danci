@@ -61,10 +61,10 @@ App({
   },
   
   // 全局分享到朋友圈方法
-  shareTimeline: function(title, query = '') {
+  shareTimeline: function() {
     return {
       title: "我正在使用kop的AI听写助手，推荐给你！",
-      path: '/pages/home/index',
+      query: "from=timeline",
       imageUrl: 'https://hyyg-1255426464.cos.ap-guangzhou.myqcloud.com/nezha.png',
       success: function(res) {
         // 分享成功的回调

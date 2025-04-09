@@ -582,9 +582,9 @@ Page({
 
   // 拍照识别单词
   scanWords: function () {
-    wx.showLoading({
-      title: '处理中...',
-    });
+    // wx.showLoading({
+    //   title: '处理中...',
+    // });
 
     // 先选择图片
     wx.chooseMedia({

@@ -6,7 +6,19 @@ Page({
     loading: false // 加载状态
   },
 
-  onLoad: function () {
+  onLoad: function (options) {
+    // 检查是否从朋友圈分享进入
+    if (options && options.from === 'timeline') {
+      console.log('检测到从朋友圈分享进入，重定向到首页');
+      wx.reLaunch({
+        url: '/pages/home/index',
+        complete: () => {
+          console.log('已重定向到首页');
+        }
+      });
+      return; // 中断后续执行
+    }
+
     // 加载听写记录
     this.loadRecords();
   },

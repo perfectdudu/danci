@@ -43,7 +43,19 @@ Page({
   },
 
   onLoad: function (options) {
-    // 从本地缓存中获取当前听写记录
+    // 检查是否从朋友圈分享进入
+    if (options && options.from === 'timeline') {
+      console.log('检测到从朋友圈分享进入，重定向到首页');
+      wx.reLaunch({
+        url: '/pages/home/index',
+        complete: () => {
+          console.log('已重定向到首页');
+        }
+      });
+      return; // 中断后续执行
+    }
+    
+    // 获取当前听写记录
     const currentRecord = wx.getStorageSync('currentDictationRecord');
     
     if (currentRecord) {
