@@ -260,6 +260,8 @@ Page({
             processingComplete: true
           });
 
+          console.log("ocr识别的单词", uniqueWords)
+
           // 对比原始单词和识别结果
           this.compareWords();
 

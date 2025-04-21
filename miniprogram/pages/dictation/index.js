@@ -959,7 +959,7 @@ Page({
 
   // 组件销毁时清理资源
   onUnload: function() {
-    console.log('页面卸载，停止音频播放');
+    console.log('页面卸载，停止音频播放并清理资源');
     
     // 清除定时器
     if (this.playTimer) {
@@ -967,21 +967,25 @@ Page({
       this.playTimer = null;
     }
     
-    // 停止音频播放但不销毁实例
+    // 停止音频播放并销毁实例
     if (this.innerAudioContext) {
       try {
         this.innerAudioContext.stop();
+        this.innerAudioContext.destroy();
+        this.innerAudioContext = null;
       } catch (err) {
-        console.error('停止音频播放失败:', err);
+        console.error('停止和销毁音频播放实例失败:', err);
       }
     }
     
-    // 停止完成提示音播放但不销毁实例
+    // 停止完成提示音播放并销毁实例
     if (this.completionAudioContext) {
       try {
         this.completionAudioContext.stop();
+        this.completionAudioContext.destroy();
+        this.completionAudioContext = null;
       } catch (err) {
-        console.error('停止完成提示音播放失败:', err);
+        console.error('停止和销毁完成提示音实例失败:', err);
       }
     }
     
@@ -989,12 +993,41 @@ Page({
     wx.setKeepScreenOn({
       keepScreenOn: false
     });
+
+    // 清理临时音频文件
+    this.cleanupTempAudioFiles();
   },
 
   // 清理临时音频文件
   cleanupTempAudioFiles: function() {
-    console.log('保留临时音频文件，不执行清理');
-    // 不再执行清理操作，保留所有临时音频文件
+    console.log('开始清理临时音频文件');
+    
+    // 获取已保存的音频文件信息
+    const savedAudioFiles = wx.getStorageSync('saved_audio_files') || {};
+    const fs = wx.getFileSystemManager();
+    const currentWordId = this.data.currentDictation ? this.data.currentDictation.id : '';
+    
+    // 从存储中删除不再需要的临时音频文件
+    for (let fileName in savedAudioFiles) {
+      // 保留完成提示音，只删除当前听写相关的临时文件
+      if (fileName !== 'completion_audio.mp3') {
+        const fileInfo = savedAudioFiles[fileName];
+        
+        // 尝试删除文件
+        try {
+          fs.accessSync(fileInfo.path);
+          fs.unlinkSync(fileInfo.path);
+          console.log('成功删除临时音频文件:', fileName);
+          delete savedAudioFiles[fileName];
+        } catch (error) {
+          console.error('删除临时音频文件失败:', fileName, error);
+        }
+      }
+    }
+    
+    // 更新存储
+    wx.setStorageSync('saved_audio_files', savedAudioFiles);
+    console.log('临时音频文件清理完成');
   },
   
   // 随机排序数组

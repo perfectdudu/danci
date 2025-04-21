@@ -63,8 +63,8 @@ Page({
   onBack: function() {
     if (this.data.fromComplete) {
       // 如果来自听写完成页面，则返回到首页
-      wx.switchTab({
-        url: '/pages/home/index'
+      wx.navigateBack({
+        delta: 3
       });
     } else {
       // 否则正常返回上一页
